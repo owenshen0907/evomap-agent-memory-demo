@@ -1,36 +1,46 @@
 # 一次真实经验复现：EvoMap 如何让 Agent 在新线程里少绕弯
 
-飞书版本：<https://ccnjn62goe9e.feishu.cn/docx/So4SdLJOFoz1dvxMP49c6x1gnlh>
+> 本文用一个独立开发者的真实场景，复现 EvoMap / Evolver 如何把跨线程经验沉淀为 Gene / Capsule，并让 Cursor、Codex、Claude Code 这类 coding agent 在新线程里先 recall，再给方案。
 
 开源 demo：<https://github.com/owenshen0907/evomap-agent-memory-demo>
 
-evomap-agent-skill：<https://github.com/owenshen0907/evomap-agent-skill>
+安装参考：<https://github.com/owenshen0907/evomap-agent-skill>
 
-> 这篇文章面向普通用户，不先讲协议。先看一个真实经验的最小复现：同样的需求，普通 Agent 可能会反复追问背景；接入 EvoMap / Evolver 后，Agent 能先 recall 已沉淀的经验，再直接给出更贴近项目现状的方案。
+## 问题不是 Agent 不聪明，而是每个新线程都像第一次见你
 
-## 先看效果：新线程不再从零开始
+很多人开始使用 coding agent 后，很快会遇到一个反复出现的问题：同一个项目、同一套背景、同一批已经解释过的约束，只要换一个新线程，Agent 就可能重新追问一遍。
 
-我日常会在 Cursor、Codex、Claude Code 这类 coding agent 里拆不同线程做事。问题是，线程一多，Agent 很容易丢掉长期项目里的背景：一个线程讲过网站数据结构，另一个线程讲过视频生成流程，第三个线程又解释过素材如何回写。到新的线程里，它通常只能重新问一遍。
+这不是模型能力差。多数时候，Agent 的反问是合理的。它不知道另一个线程里已经确认过数据库结构，不知道前一次任务里已经排除过某个方案，也不知道某个脚本为什么不能直接复用。于是用户不得不重复解释，Agent 也会在已经走过的路上继续试错。
 
-EvoMap / Evolver 想解决的是这件事：把多次任务里的有效经验沉淀下来，让新线程在回答前先 recall 相关 Gene / Capsule。它不是让 Agent 自动做所有决定，而是让 Agent 少问已经解释过的问题。
+EvoMap / Evolver 要解决的不是“让 Agent 永远不提问”，而是让 Agent 少问那些已经被验证过的问题。它把任务过程里的有效经验沉淀下来，让新线程先 recall 相关 Gene / Capsule，再进入方案设计。
 
 ![多线程经验如何被 EvoMap 复用](images/mainline-gpt-image-2/zh/11-cross-thread-experience-reuse-zh.png)
 
-## Skill 好用，但它不是全部答案
+这篇文章不从协议开始，而从一个可复现的案例开始：如果一个 Agent 已经在历史线程里学会了“网站词库和视频产物如何互相反哺”，新线程是否还能直接使用这条经验。
 
-Skill 很适合固定流程。比如我可以写一个 Skill，告诉 Agent 生成日语跟读视频时使用哪个脚本、素材目录在哪里、哪些生产动作必须先确认。只要任务稳定，Skill 会非常好用。
+## Skill 解决固定流程，Evolver 解决经验变化
 
-但真实项目会变化。原来只是“给日语工作坊网站展示单词图片”，后来变成“用网站词库生成跟读视频，再把视频产物反哺回网站”。如果继续把所有新经验都塞回 Skill，Skill 会越来越长，也可能把旧约束带到新任务里。
+Skill 很适合固定流程。比如告诉 Agent：生成视频前先检查素材目录，改生产数据前必须确认，发布前要跑哪些命令。只要任务边界稳定，Skill 是非常有效的操作说明。
 
-Evolver 更适合处理这种变化：它识别任务过程里的信号，提炼出 Gene；当经验被验证有效后，再包装成 Capsule。Capsule 可以是正向经验，也可以是错误示例。新线程 recall 到这些资产后，Agent 就能先站在历史经验上回答。
+但长期项目里的经验并不总是稳定流程。很多经验来自变化：用户纠正了一次错误判断，某个旧约束不再适用，一个原本只服务网站的素材开始被视频流程复用。把所有变化都写回 Skill，Skill 会越来越长，也可能把旧条件带进新任务。
+
+Evolver 处理的是另一类问题。它从任务信号中识别可复用经验，提炼成 Gene；当这条经验经过验证，或者形成了有价值的正向经验和错误示例，再包装成 Capsule。新线程 recall 到这些资产后，Agent 就能先站在历史经验上思考，而不是从空白开始。
 
 ![Skill 和 Evolver 的边界](images/mainline-gpt-image-2/zh/12-skill-evolver-boundary-zh.png)
 
-## 接入方式：让 Agent 直接帮你安装
+一个简单的判断方式是：
 
-普通用户不需要先理解 Evolver 的所有内部概念。更简单的方式是把安装要求交给 Agent。
+| 类型 | 更适合放在哪里 | 例子 |
+| --- | --- | --- |
+| 稳定流程 | Skill | 每次发版前必须跑测试 |
+| 已验证经验 | Gene / Capsule | 某个项目里网站词库是视频流程的事实源 |
+| 敏感动作 | 用户确认 | 上传素材、改库、发布、消费 credits |
 
-如果你用 Cursor、Codex 或 Claude Code，可以让 Agent 按这个思路执行：
+## 普通用户怎么接入：先让 Agent 帮你装
+
+普通用户不需要先理解 GEP、A2A、GDI 这些概念。官网的推荐路径里，大多数用户可以先从 CLI 开始，因为 CLI 会处理注册、令牌存储和协议升级；对 Cursor、Claude Code、终端类 Agent 都更直接。
+
+你可以直接把下面这段话发给当前 Agent：
 
 ```text
 请安装 @evomap/evolver，并在当前项目里配置对应平台的 hooks。
@@ -40,7 +50,7 @@ Evolver 更适合处理这种变化：它识别任务过程里的信号，提炼
 完成后告诉我是否需要重启，以及 hooks 是否注册成功。
 ```
 
-如果还希望 Agent 更稳地理解 EvoMap 的使用边界，可以再安装 `evomap-agent-skill`：
+如果希望 Agent 更稳地遵守 EvoMap 的使用边界，可以再安装 `evomap-agent-skill`：
 
 ```bash
 npm install -g @evomap/evolver
@@ -48,22 +58,22 @@ evolver setup-hooks --platform=codex
 npx skills add owenshen0907/evomap-agent-skill -g -y
 ```
 
-第一次试用建议保持三条原则：本地、可审查、零自动消费。不要默认打开自动购买、自动发布、自动消耗 credits 的行为。Evolver 应该先帮助 Agent 看见经验，而不是替用户跳过确认。
+第一次试用建议保持三个默认原则：本地、可审查、零自动消费。不要默认开启自动购买、自动发布、自动消耗 credits 的功能。Evolver 应该先帮助 Agent 看见经验，而不是替用户跳过确认。
 
 ![三步接入 EvoMap](images/mainline-gpt-image-2/zh/13-three-step-install-zh-v2.png)
 
-配置好 hooks 后，Agent 的关键节点会把可审查的任务信号交给 Evolver；新线程开始时，Agent 可以通过 recall 获取相关 Gene / Capsule，并把结果作为上下文使用。它改变的是 Agent 看到的背景，不是替 Agent 自动执行危险动作。
+接入后，Agent 的关键节点会把可审查的任务信号交给 Evolver。新线程开始时，Agent 可以 recall 相关 Gene / Capsule，并把它们作为上下文使用。这里改变的是 Agent 看到的经验背景，不是让 Agent 自动执行高风险动作。
 
-## 真实经验收敛成一个小场景
+## 一个真实但足够小的案例：日语工作坊和跟读视频
 
-我的真实场景可以展开得很复杂：有网站、有视频、有素材、有数据库、有对象存储。为了让 demo 能被复现，我把它收敛成两个事项。
+原始场景来自一个独立开发者的日语学习产品。实际系统里有网站、素材、数据库、对象存储和视频流程。为了让它适合官网演示和开源复现，本文把它收敛成两个工作面。
 
-| 事项 | 已有内容 | 产生的新价值 |
+| 工作面 | 已有内容 | 新产生的价值 |
 | --- | --- | --- |
 | 日语工作坊网站 | 17000 多个单词、17000 多张照片、读音和解释 | 为视频提供稳定 `word_id`、图片和音频 |
 | 日语跟读视频 | 按场景筛词，生成跟读合集 | 产生场景标签、例句图片、旁白音频 |
 
-这两个事项不是单向关系。网站给视频提供词库和素材；视频生成过程中产生的场景、例句图片、旁白音频，又应该回到网站展示。
+这两个工作面不是单向关系。网站给视频提供词库和素材；视频生成过程中产生的场景、例句图片、旁白音频，又应该回到网站展示。
 
 ![日语工作坊与跟读视频反馈循环](images/mainline-gpt-image-2/zh/14-workshop-shadowing-feedback-loop-zh.png)
 
@@ -78,7 +88,7 @@ npx skills add owenshen0907/evomap-agent-skill -g -y
 | Gene | `workshop-shadowing-feedback-loop` | 描述网站和视频之间的稳定反馈关系 |
 | Capsule | `workshop-shadowing-positive-feedback-case` | 保存一次验证过的正向经验，说明如何最小化复现 |
 
-## 同一个需求，两种起手式
+## 同一个需求，Agent 的起手式应该改变
 
 新线程里只给 Agent 这段需求：
 
@@ -90,9 +100,9 @@ npx skills add owenshen0907/evomap-agent-skill -g -y
 你帮我设计一个最小复现流程。
 ```
 
-普通 Agent 的反问通常是合理的：单词表结构是什么，照片在哪里，场景分类是否已有，视频脚本从哪里读，生成结果回写到哪个表。它不是笨，而是没有继承历史线程里的经验。
+没有历史经验时，Agent 先问表结构、素材位置、场景分类、视频脚本入口、回写方式，都是合理的。但如果这些信息已经在多个历史线程里确认过，新线程仍然从这些基础问题开始，说明经验没有被继承。
 
-接入 EvoMap 后，期望它先 recall 到前面的 Gene / Capsule，然后直接给出更具体的起手方案：
+接入 EvoMap 后，理想的变化不是“Agent 不问问题”，而是“Agent 先复用经验，再只问真正需要确认的风险点”。它应该先 recall 到前面的 Gene / Capsule，然后直接给出更贴近项目现状的最小方案：
 
 1. 以日语工作坊 `word_id` 为事实源，不复制一套视频专用单词表。
 2. 先选一个最小场景，例如“餐厅”。
@@ -103,11 +113,11 @@ npx skills add owenshen0907/evomap-agent-skill -g -y
 
 ![接入 EvoMap 后，Agent 先复用经验再给方案](images/mainline-gpt-image-2/zh/06-evolved-direct-path-zh.png)
 
-它仍然应该提问，但提问应该集中在真正高风险的动作上：是否允许新增或修改网站素材 manifest，是否允许真实视频渲染，是否允许上传素材，是否允许发布网站。
+它仍然应该向用户确认高风险动作，例如是否允许新增或修改网站素材 manifest，是否允许真实视频渲染，是否允许上传素材，是否允许发布网站。少绕弯不等于少确认。
 
-## 用 demo 验证 recall 是否生效
+## 开源 demo 如何复现这个经验
 
-这个开源 demo 不执行真实上传、不改生产数据库，也不真的渲染视频。它验证的是更前置的能力：在新线程混入干扰信息时，Agent 能否 recall 到正确经验，并给出正确方向。
+这个 demo 不执行真实上传、不改生产数据库，也不渲染真实视频。它验证的是更前置、更关键的能力：在新线程混入干扰信息时，Agent 能否 recall 到正确经验，并给出正确方向。
 
 ```bash
 git clone https://github.com/owenshen0907/evomap-agent-memory-demo.git
@@ -132,11 +142,11 @@ python3 -m unittest discover
 
 ![demo 验收输出拆解](images/mainline-gpt-image-2/zh/15-validation-output-breakdown-zh.png)
 
-这个 demo 的价值不是证明 EvoMap 已经替我完成了生产任务，而是证明一件更基础的事：新线程不需要重新猜测“网站和视频是什么关系”，它可以先用历史经验定位正确方向。
+这个 demo 的意义不是证明 EvoMap 已经完成生产任务，而是证明新线程不需要重新猜测“网站和视频是什么关系”。它可以先用历史经验定位方向，再把精力放在真正需要执行确认的地方。
 
-## 怎么判断不是心理作用
+## 怎么判断效果不是心理作用
 
-评估 EvoMap 的效果，不应该只看 Agent 语气是不是更自信，而应该看行为有没有变化。
+评估 EvoMap 的效果，不应该只看 Agent 的语气是不是更自信，而应该看行为有没有变化。
 
 | 指标 | 没有 EvoMap 时 | 接入 EvoMap 后 |
 | --- | --- | --- |
@@ -148,7 +158,7 @@ python3 -m unittest discover
 
 ![进化效果指标](images/mainline-gpt-image-2/zh/08-evolution-metrics-zh-v2.png)
 
-EvoMap 的价值不是让 Agent 永远不提问，而是让它少问已经解释过的问题，并把问题集中到真正需要用户决策的位置。
+真正有价值的变化，是 Agent 的问题变少了，但不是因为它忽略风险，而是因为它把提问集中到用户真正需要决策的位置。
 
 ## 安全边界：recall 不等于自动执行
 
@@ -174,8 +184,16 @@ EvoMap 的价值不是让 Agent 永远不提问，而是让它少问已经解释
 
 更直接地说：Agent 可以先给方案，但写 migration、真实视频渲染、上传素材、发布网站，都应该继续向用户确认。
 
-## 结论
+## 结论：先从一个会重复出现的小场景开始
 
-这篇文章想证明的不是 EvoMap 可以自动完成所有工程动作，而是一个更普通但更常见的问题：Agent 不必每个新线程都从零理解你。
+EvoMap 的价值不是让 Agent 自动完成所有工程动作，而是解决一个更常见的问题：Agent 不必每个新线程都从零理解你。
 
-Skill 负责固定流程，Evolver 负责把真实使用中的有效经验留下来。对普通用户来说，最直接的价值就是少解释、少反问、少绕弯。对演示来说，这个 demo 也足够小：只要能复现 recall 命中 Gene / Capsule，并让新线程给出正确结构，就能说明 Evolver 已经开始对 Agent 起作用。
+Skill 负责固定流程，Evolver 负责把真实使用中的有效经验留下来。对普通用户来说，最直接的价值是少解释、少反问、少绕弯。对团队演示来说，这个 demo 也足够小：只要能复现 recall 命中 Gene / Capsule，并让新线程给出正确结构，就能说明 Evolver 已经开始对 Agent 起作用。
+
+如果想试用，不需要一开始就让 EvoMap 记住所有东西。先选一个会重复出现、但每次都需要重新解释的小场景。把它跑通，再让 Agent 在下一个线程里验证是否能 recall 到正确经验。
+
+## 参考资料
+
+- EvoMap 官方指南：<https://evomap.ai/zh/learn/connect-ai-agent>
+- evomap-agent-skill：<https://github.com/owenshen0907/evomap-agent-skill>
+- 本文开源 demo：<https://github.com/owenshen0907/evomap-agent-memory-demo>
