@@ -127,13 +127,15 @@
 <pre lang="bash" caption="验证命令"><code>git clone https://github.com/owenshen0907/evomap-agent-memory-demo.git
 cd evomap-agent-memory-demo
 python3 demo.py
+python3 scripts/validate_recall.py
 python3 -m unittest discover</code></pre>
 
 <ul>
   <li>demo.py 输出包含 WITHOUT_EVOMAP 和 NEW_THREAD_WITH_EVOMAP_RECALL。</li>
+  <li>scripts/validate_recall.py 输出 AUTOMATED_RECALL_VALIDATION 和 PASS。</li>
   <li>普通路径会出现基础设施反问和方案摇摆。</li>
   <li>Evolver 路径会出现 asset_manifest、object_key、AssetUrlResolver。</li>
-  <li>单测输出 3 tests OK。</li>
+  <li>单测输出 5 tests OK。</li>
 </ul>
 
 <p><b>【图 8：进化效果如何衡量】</b></p>

@@ -2,7 +2,7 @@
 
 ## Goal
 
-Provide a minimal, reproducible, text-only demo of cross-thread experience reuse.
+Provide a minimal, reproducible, text-only demo of cross-thread experience reuse when a concrete skill stops fitting a slightly changed task.
 
 ## Non-Goals
 
@@ -15,12 +15,13 @@ Provide a minimal, reproducible, text-only demo of cross-thread experience reuse
 
 ## Core Model
 
-The demo has four parts:
+The demo has five parts:
 
-1. Simulated source threads that contain background, correction, and validation signals.
+1. Simulated source threads that contain skill-fit, correction, and validation signals.
 2. Evolver-style distillation into a shared-asset Gene and positive Capsule.
-3. A new-thread prompt with cross-project ambiguity.
-4. A recall-enabled response that uses the distilled assets before answering.
+3. Distractor threads with nearby but irrelevant UI/video context.
+4. A new-thread prompt with cross-project ambiguity.
+5. A recall-enabled response that uses the distilled assets before answering.
 
 ## Memory Assets
 
@@ -36,7 +37,16 @@ The demo has four parts:
 
 ## Why This Case Is Small Enough
 
-The demo reduces the real developer environment to four projects and four infrastructure aliases. That is enough to reproduce cross-thread experience reuse without exposing private details or executing production actions.
+The demo reduces the real developer environment to a repeated skill-use problem: an asset-publishing skill is useful for one concrete website workflow, but its assumptions become friction when the task shifts to shared web/app/video reuse and domestic/global delivery. That is enough to reproduce cross-thread experience reuse without exposing private details or executing production actions.
+
+## Automated Validation
+
+`scripts/validate_recall.py` is the main verification signal. It:
+
+1. Prints source threads and distractor threads.
+2. Runs a deterministic recall query with mixed relevant and irrelevant context.
+3. Passes only when the shared-asset Gene and positive Capsule are both recalled.
+4. Checks that the simulated response uses `asset_manifest`, `object_key`, and `AssetUrlResolver`, while still asking for real execution approvals.
 
 ## Extension Path
 

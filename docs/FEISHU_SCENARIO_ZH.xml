@@ -88,7 +88,8 @@ python3 -m unittest discover</code></pre>
   <tbody>
     <tr><td>普通 Agent 路径存在</td><td>输出包含 WITHOUT_EVOMAP，并展示基础设施反问路径</td></tr>
     <tr><td>进化后路径存在</td><td>输出包含 NEW_THREAD_WITH_EVOMAP_RECALL，并直接给出 asset_manifest / AssetUrlResolver 方案</td></tr>
-    <tr><td>测试可执行</td><td>unittest discover 通过 3 个基础测试</td></tr>
+    <tr><td>验证脚本可执行</td><td>scripts/validate_recall.py 输出 AUTOMATED_RECALL_VALIDATION 和 PASS</td></tr>
+    <tr><td>测试可执行</td><td>unittest discover 通过 5 个基础测试</td></tr>
     <tr><td>不污染环境</td><td>当前 demo 离线运行，不需要真实 API key、OSS 凭证或数据库连接</td></tr>
   </tbody>
 </table>

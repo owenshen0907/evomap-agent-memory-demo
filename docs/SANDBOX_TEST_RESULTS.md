@@ -26,6 +26,7 @@ python3 demo.py
 Observed:
 
 - Output contains `SIMULATED_SOURCE_THREADS`.
+- Output contains `DISTRACTOR_THREADS`.
 - Output contains `EVOLVER_DISTILLATION`.
 - Output contains `NEW_THREAD_WITH_EVOMAP_RECALL`.
 - Output contains `WITHOUT_EVOMAP`.
@@ -44,6 +45,29 @@ Interpretation: this is a text-only reproduction of experience distillation and
 reuse across threads. It does not perform real uploads, database migrations, or
 video rendering.
 
+## Automated Recall Validation
+
+Command:
+
+```bash
+python3 scripts/validate_recall.py
+```
+
+Observed:
+
+- Output contains `AUTOMATED_RECALL_VALIDATION`.
+- Output contains `SOURCE_THREADS`.
+- Output contains `DISTRACTOR_THREADS`.
+- Output contains `RECALL_QUERY`.
+- Output contains both:
+  - `Gene shared-asset-pipeline-invariant`
+  - `Capsule shared-asset-pipeline-positive-jp-learning-stack`
+- Output ends with `RESULT` / `PASS`.
+
+Interpretation: the validation script treats the demo as an integration signal
+for EvoMap recall. It verifies that relevant source-thread experience can be
+selected even when the new thread contains nearby UI and video-editing noise.
+
 ## Unit Tests
 
 Command:
@@ -55,9 +79,9 @@ python3 -m unittest discover
 Observed:
 
 ```text
-...
+.....
 ----------------------------------------------------------------------
-Ran 3 tests in 0.000s
+Ran 5 tests in 0.000s
 
 OK
 ```
@@ -115,6 +139,7 @@ Conclusion: the MCP server can start in local mode without providing Hub credent
 The sandbox is good enough for local smoke testing:
 
 - Demo behavior difference is reproducible.
+- Automated recall validation passes with distractor context.
 - Unit tests pass.
 - Evolver Codex hooks can be installed into a temporary clone.
 - GEP MCP starts in local mode.
@@ -122,6 +147,7 @@ The sandbox is good enough for local smoke testing:
 For production-like evidence, repeat the same plan on a fresh computer and capture screenshots of:
 
 1. `python3 demo.py` output showing both paths.
-2. `python3 -m unittest discover` showing `3 tests OK`.
-3. `evolver setup-hooks --platform=codex` output showing hook files created under the test repo.
-4. `npx -y @evomap/gep-mcp-server --help` showing local mode startup.
+2. `python3 scripts/validate_recall.py` output showing `RESULT` / `PASS`.
+3. `python3 -m unittest discover` showing `5 tests OK`.
+4. `evolver setup-hooks --platform=codex` output showing hook files created under the test repo.
+5. `npx -y @evomap/gep-mcp-server --help` showing local mode startup.

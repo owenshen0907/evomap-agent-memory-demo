@@ -1,199 +1,194 @@
 <title>一次真实经验复现：EvoMap 如何让 Agent 在新线程里少绕弯</title>
 
 <callout emoji="✅" background-color="light-green" border-color="green">
-  <p><b>文章定位：</b>这不是一篇协议说明，也不是证明 Agent 已经能自动执行真实上传、改库或发布任务。它复现的是一个更基础的经验：多个线程里出现过的说明、纠正和有效做法，能不能被 Evolver 沉淀下来，并在新线程里被 Agent 先 recall 再使用。</p>
+  <p><b>文章定位：</b>这篇文章不讲完整协议，也不证明 Agent 已经能自动执行上传、改库或发布任务。它讲一个更具体的问题：Skill 很适合解决明确、稳定的任务，但当类似任务稍微变化，旧 Skill 里的假设和约束可能变成新的摩擦。EvoMap / Evolver 要解决的，是让 Agent 从多次真实使用里识别信号、提炼经验，并在新线程里先 recall 再回答。</p>
 </callout>
 
 <p><a type="url-preview" href="https://github.com/owenshen0907/evomap-agent-memory-demo">开源 Demo 仓库：evomap-agent-memory-demo</a></p>
 
-<h1>我遇到的问题：新线程总像第一次认识我</h1>
+<h1>Skill 很好用，但不应该越写越厚</h1>
 
-<p>我现在经常用 Codex、Cursor、Claude Code 这类 coding agent 做长期项目。真正让我累的不是单次任务有多难，而是换一个线程后，Agent 经常又像第一次认识我。</p>
+<p>我现在会给 Codex、Cursor、Claude Code 配一些 Skill。它们在具体场景里非常好用：比如固定的视频生成流程、某个项目的发布检查、某类文档整理、某个素材上传步骤。</p>
 
-<p>我有几个日语学习相关项目：一个网站、两个 App，还有一条把学习素材剪成短视频的流水线。它们会共用单词、语法、音频和插图，但不同端的访问路径、素材组织方式和发布规则不完全一样。</p>
+<p>问题出现在“类似但不完全相同”的任务里。</p>
 
-<p>普通 Agent 第一次问我服务器怎么分工、文件存在哪里、视频流水线读什么数据，这是合理的。但当这些信息已经在过去多个线程里反复出现，甚至有些做法已经被验证过，它还每次从头问一遍，我就知道问题不只是 context 不够，而是经验没有留下来。</p>
+<p>一个 Skill 往往会写清楚触发条件、操作步骤、目录约定、安全边界和输出格式。对原场景来说，这些约束很有价值；但当任务只变化一点，例如从“给网站上传素材”变成“让网站、App、视频流水线共用素材”，原来的约束就可能开始影响判断。</p>
+
+<p>这时常见做法是继续补 Skill：加一个例外、加一段说明、加一个新分支。短期有效，但长期会让 Skill 变厚，也会让 Agent 更难判断“这次到底该套哪一段规则”。</p>
+
+<p>我想要的不是每次都手动维护一份越来越复杂的 Skill，而是让 Agent 在使用 Skill、被用户纠正、通过验证之后，能把其中真正稳定的经验沉淀下来。</p>
 
 <p><b>【图 1：多线程经验如何被 EvoMap 复用】</b></p>
 
-<p>所以我想验证的不是“Agent 能不能真的把素材上传到 OSS”。我想验证的是更前置的一件事：多个线程里出现过的说明、纠正和有效做法，能不能被 Evolver 识别、提炼、验证，并在新线程里减少绕弯。</p>
+<p>这就是我看 EvoMap 的入口：它不是替代 Skill，而是让 Skill 背后的经验可以继续进化。</p>
 
 <hr/>
 
-<h1>真实场景：几个日语学习项目共用素材</h1>
+<h1>普通用户怎么接入 EvoMap</h1>
 
-<p>这个场景来自我的真实工作流，但为了方便复现，我把它压到最小。</p>
+<p>EvoMap 的接入可以先理解成两层。</p>
 
-<p>我有一批日语学习基础数据，包括单词、语法、音频、插图和视频素材。它们会被几个项目重复使用：</p>
+<p>第一层是让 Agent 知道“什么时候该使用 EvoMap / Evolver”。在 Codex 里可以安装 <code>evomap-agent-economy</code> 这类 Skill；在 Cursor 里可以放到 <code>.cursor/rules</code>；在 Claude Code 里可以写进 <code>CLAUDE.md</code> 或使用对应 Skill。它的作用是告诉 Agent：遇到 EvoMap、Evolver、Skill 优化、经验沉淀、Gene / Capsule、发布或信用消耗相关任务时，先读取这套规则，并遵守安全默认值。</p>
 
-<ul>
-  <li>日语学习工坊网站。</li>
-  <li>对话语音练习 App。</li>
-  <li>单词语法查询助手 App。</li>
-  <li>短视频剪辑流水线。</li>
-</ul>
+<p>第二层是 Evolver 的运行时接入。当前 CLI 可以用 hooks 接入常见 coding agent：</p>
 
-<p>这类需求看上去像“生成一批音频和插图”，但真实问题不是生成文件本身，而是这些素材要被多个项目复用。更麻烦的是，国内用户和海外用户的访问路径可能不同，素材路径不能随便写死。</p>
+<pre lang="bash" caption="Evolver hooks 接入"><code>evolver setup-hooks --platform=codex
+evolver setup-hooks --platform=cursor
+evolver setup-hooks --platform=claude-code</code></pre>
 
-<p>我在不同线程里曾经反复说明过类似信息：</p>
+<p>首次试用时，我建议先保持本地、可审查、零自动消费：</p>
 
-<ul>
-  <li>这些项目共用同一批学习素材。</li>
-  <li>数据库应该记录素材的稳定标识，而不是写死完整访问 URL。</li>
-  <li>网站、App、视频流水线应该尽量读同一份素材清单。</li>
-  <li>海外访问路径和国内访问路径可以不同，但不应该污染素材事实源。</li>
-</ul>
+<pre lang="bash" caption="首次试用安全默认值"><code>export EVOLVER_ATP_AUTOBUY=off
+export ATP_AUTOBUY_DAILY_CAP_CREDITS=0
+export ATP_AUTOBUY_PER_ORDER_CAP_CREDITS=0
+export EVOLVER_AUTO_PUBLISH=false
+export EVOLVER_VALIDATOR_ENABLED=false</code></pre>
 
-<p>这些不是一次性的背景介绍，而是会在很多任务里反复用到的经验。</p>
+<p><b>【图 2：EvoMap 接入 Agent 的方式】</b></p>
+
+<p>这样接入后，Evolver 不是在替你偷偷改规则，也不是自动花费 credits。更合理的第一步是：让它从本地任务里识别信号，生成可审查的经验资产，等你确认后再固化或发布。</p>
 
 <hr/>
 
-<h1>多个线程里，经验是怎么出现的</h1>
+<h1>它为什么会对 Agent 起作用</h1>
 
-<p>我把真实经验抽象成三个来源线程。</p>
+<p>普通 Skill 更像一份“操作说明”。Agent 读到它，就按里面的流程做事。</p>
+
+<p>Evolver 处理的是另一层：任务过程中不断出现的信号。</p>
+
+<p>这些信号可能来自几类地方：</p>
+
+<ul>
+  <li>用户反复纠正同一个问题。</li>
+  <li>Agent 在相似任务里反复卡住。</li>
+  <li>某个方案通过了测试或人工确认。</li>
+  <li>某个 Skill 的限制在新任务里暴露出不适用。</li>
+  <li>某个错误做法被证明以后应该避免。</li>
+</ul>
+
+<p>Evolver 会把这些信号提炼成 Gene，也就是可复用的策略；再用验证结果、执行记录或人工确认形成证据；最后把某个 Gene 的正向经验或错误示例包装成 Capsule。</p>
+
+<p><b>【图 3：Evolver 如何把信号变成胶囊】</b></p>
+
+<p>所以它对 Agent 的影响不只是“多记住一点聊天记录”。更关键的是，新线程开始时，Agent 可以先拿到相关 Gene / Capsule，再决定怎么回答。</p>
 
 <table>
   <thead>
-    <tr><th background-color="light-gray">来源线程</th><th background-color="light-gray">发生了什么</th><th background-color="light-gray">对 Evolver 来说可能是什么信号</th></tr>
+    <tr><th background-color="light-gray">状态</th><th background-color="light-gray">Agent 起手式</th></tr>
   </thead>
   <tbody>
-    <tr><td>线程 A</td><td>我说明了网站、App、视频流水线共用日语学习素材</td><td>背景信号：这是一个跨项目复用问题</td></tr>
-    <tr><td>线程 B</td><td>Agent 曾经倾向于把完整 URL 写入数据库，我纠正说应该保存 object key</td><td>纠错信号：某个方案以后应避免</td></tr>
-    <tr><td>线程 C</td><td>后来确认 asset_manifest + object_key + resolver 更适合这个场景</td><td>验证信号：某个做法可以沉淀</td></tr>
+    <tr><td>以前</td><td>先问一堆基础背景</td></tr>
+    <tr><td>现在</td><td>先说明命中的经验，再基于经验给方案，只在真实高风险动作前确认</td></tr>
   </tbody>
 </table>
 
-<p>对普通聊天记录来说，这些信息只是散落在不同线程里的文字。问题是，新的线程并不会天然知道它们之间的关系。</p>
+<hr/>
 
-<p>Evolver 要做的事情，就是从这些文字里识别出稳定信号：哪些是背景，哪些是纠错，哪些是已经被验证过的做法。</p>
+<h1>一个轻量真实场景：素材发布 Skill 遇到变化</h1>
+
+<p>我的真实场景可以压缩成一句话：</p>
+
+<blockquote>我有日语学习网站、两个 App 和一条短视频流水线，它们都要复用同一批单词、语法、音频、插图素材。</blockquote>
+
+<p>一开始，某个素材发布 Skill 可能只服务于一个网站流程。它知道素材放哪里、URL 怎么写、生成后怎么更新页面。只看这个场景，Skill 很好用。</p>
+
+<p>后来任务变了：同一批 N5 单词卡的音频和插图，不只是给网站用，还要给 App 和视频流水线复用；国内用户和海外用户的访问路径也可能不同。</p>
+
+<p>这时旧 Skill 里如果隐含了“把完整 URL 写进数据库”或“只面向网站路径组织素材”的假设，就会影响新任务。正确经验应该被抽出来：</p>
+
+<blockquote>数据库保存稳定的 <code>object_key</code> 和校验信息；素材访问 URL 由 <code>AssetUrlResolver(region, object_key)</code> 动态生成；网站、App、视频流水线共用 <code>asset_manifest</code>，不要各自维护一套路径规则。</blockquote>
+
+<p>这个场景本身不需要占据文章太多篇幅。它只是用来说明：很多长期项目里的问题，不是 Agent 不会写代码，而是它不知道哪些经验已经被验证过，哪些 Skill 假设已经不适合新变化。</p>
 
 <hr/>
 
-<h1>Evolver 应该沉淀什么</h1>
+<h1>同一句需求，两种起手式</h1>
 
-<p>在这个经验里，我希望 Evolver 沉淀的不是“我说过哪些话”，而是一个可复用判断：</p>
+<p>我用一个最小需求来复现这个差异：</p>
 
-<blockquote>当任务涉及日语学习素材在网站、App、视频流水线之间复用时，优先使用共享素材清单；数据库保存 object key 和校验信息；访问 URL 根据区域动态生成；不要把固定完整 URL 写死。</blockquote>
+<blockquote>我要给 N5 单词卡生成一批音频和插图，上传到 OSS，并让网站、两个 app、视频剪辑流水线都能复用。国内用户走国内 OSS/CDN，海外用户走海外加速。你帮我设计并落地最小实现。</blockquote>
 
-<p>如果用 EvoMap 的术语，可以把它拆成两层：</p>
+<p>没有 EvoMap 的 Agent 很可能先问：</p>
 
 <ul>
-  <li><b>Gene：</b>遇到这类共享素材问题时，应该采用什么策略。</li>
-  <li><b>Capsule：</b>这个策略在我的日语学习项目场景里被验证过，或者某个错误做法曾经造成问题。</li>
+  <li>国内和海外服务器分别是什么角色？</li>
+  <li>OSS 桶、CDN 域名、签名规则是什么？</li>
+  <li>网站、App、视频流水线分别读哪里？</li>
+  <li>素材 URL 是直接存数据库，还是运行时生成？</li>
+  <li>视频流水线是读数据库、CSV、JSON manifest，还是直接扫 OSS？</li>
 </ul>
 
-<callout emoji="💡" background-color="light-blue" border-color="blue">
-  <p>普通用户不需要先记住这些词。更重要的是理解结果：Evolver 不只是保存聊天历史，而是把有效经验包装成新线程可以召回的经验资产。</p>
-</callout>
+<p>这些问题不是错。一个没有历史经验的 Agent 确实应该问清楚。</p>
+
+<p><b>【图 4：普通 Agent 会先反问基础上下文】</b></p>
+
+<p>但如果 Evolver 已经从过去线程里沉淀了 Gene / Capsule，Agent 应该先这样起手：</p>
+
+<blockquote>我先复用之前沉淀的共享素材经验：用 <code>asset_manifest</code> 作为共同事实源，数据库只保存 <code>object_key</code> 和校验信息，不保存固定完整 URL，再用 <code>AssetUrlResolver</code> 按国内 / 海外区域生成访问地址。</blockquote>
+
+<p>然后它可以直接给最小实现路径：选少量 N5 单词做垂直切片，生成音频和插图，上传并校验 hash，写入 manifest，API 返回国内和海外两套访问地址，视频流水线消费 manifest snapshot。</p>
+
+<p><b>【图 5：接入 EvoMap 后，Agent 先复用经验再给方案】</b></p>
+
+<p>它仍然应该确认两类真实风险：是否允许写数据库 migration，是否允许使用当前环境里的 OSS 凭证执行真实上传。减少绕弯不等于取消安全确认。</p>
 
 <hr/>
 
-<h1>新线程里，Agent 应该怎么变化</h1>
+<h1>开源 demo：把它当成接入后的验证信号</h1>
 
-<p>接下来才是关键验证。</p>
+<p>我为这次经验做了一个开源 demo。它不是为了真的上传素材、改数据库或跑视频任务，而是作为接入 EvoMap 后的一个验证信号：</p>
 
-<p>我在一个新线程里提出一个相似但不完全相同的需求：</p>
-
-<blockquote>我要给 N5 单词卡生成一批音频和插图，上传到文件存储，并让网站、App、视频流水线都能复用。国内用户和海外用户访问路径不同。你帮我设计并落地最小实现。</blockquote>
-
-<p>没有 EvoMap 的 Agent 很可能会先问：</p>
-
-<ul>
-  <li>服务器怎么分工？</li>
-  <li>文件存储怎么配置？</li>
-  <li>网站、App、视频分别读哪里？</li>
-  <li>URL 是存在数据库里，还是每次生成？</li>
-  <li>海外访问是 CDN、代理，还是同步一份文件？</li>
-</ul>
-
-<p>这些问题本身不愚蠢。一个没有历史经验的 Agent 确实应该问清楚。</p>
-
-<p><b>【图 2：普通 Agent 会先反问基础上下文】</b></p>
-
-<p>但如果接入 Evolver，并且前面那些线程里的经验已经被沉淀下来，我希望 Agent 的起手式发生变化：</p>
-
-<blockquote>我先按之前沉淀的共享素材经验来处理：建立共享素材清单，上传后记录 object key 和校验信息，不把完整 URL 写死，再按国内 / 海外访问区域动态生成访问地址。</blockquote>
-
-<p>这时候它不是“不问任何问题”，而是少问那些已经解释过的问题。它仍然应该把写生产数据库、真实上传文件、发版上线这类高风险动作留给用户确认。</p>
-
-<p><b>【图 3：接入 EvoMap 后，Agent 先复用经验再给方案】</b></p>
-
-<p>这个变化很小，但对长期使用 coding agent 的人来说很重要。它意味着新线程不再完全从零开始。</p>
-
-<hr/>
-
-<h1>开源 demo 复现的是什么</h1>
-
-<p>我为这个经验做了一个开源 demo，但它不是为了真的执行上传、改库或剪视频。</p>
-
-<p>它复现的是一个纯文字流程：</p>
-
-<ol>
-  <li seq="auto">模拟多个历史线程：说明背景、纠正错误、确认有效做法。</li>
-  <li seq="auto">模拟 Evolver 从这些线程里提炼出 Gene 和 Capsule。</li>
-  <li seq="auto">在一个新线程里提出相似需求。</li>
-  <li seq="auto">对比没有经验召回时的回答，以及有经验召回后的回答。</li>
-</ol>
-
-<p>换句话说，这个 demo 要验证的是“经验能否被沉淀和复用”，而不是“生产任务是否真的执行成功”。</p>
-
-<p><b>【图 4：开源 demo 用来复现经验沉淀与新线程复用】</b></p>
-
-<p>你可以这样运行：</p>
+<blockquote>在多个模拟线程里输入相对复杂的信息，再混入一些干扰线程，最后在新线程里提出相关需求，看 Agent 是否能 recall 正确的 Gene / Capsule，并给出正确方向。</blockquote>
 
 <pre lang="bash" caption="本地验证命令"><code>git clone https://github.com/owenshen0907/evomap-agent-memory-demo.git
 cd evomap-agent-memory-demo
 python3 demo.py
+python3 scripts/validate_recall.py
 python3 -m unittest discover</code></pre>
 
-<p>运行后重点看三段：</p>
+<p><code>demo.py</code> 会展示三类内容：</p>
 
 <ul>
-  <li><code>SIMULATED_SOURCE_THREADS</code>：模拟多个历史线程里的背景、纠错和验证。</li>
-  <li><code>EVOLVER_DISTILLATION</code>：模拟被沉淀出来的 Gene / Capsule。</li>
-  <li><code>NEW_THREAD_WITH_EVOMAP_RECALL</code>：模拟新线程里先 recall 再回答。</li>
+  <li><code>SIMULATED_SOURCE_THREADS</code>：历史线程里的 Skill 适配、用户纠正和验证信号。</li>
+  <li><code>DISTRACTOR_THREADS</code>：UI 配色、视频片头音乐这类相近但不该影响本任务的干扰信息。</li>
+  <li><code>NEW_THREAD_WITH_EVOMAP_RECALL</code>：新线程里先 recall，再给方案。</li>
 </ul>
 
-<p>这比单纯比较两个 prompt 更接近我真实想验证的事情。</p>
+<p><code>scripts/validate_recall.py</code> 是更明确的自动化验证。它会构造一个带干扰信息的新线程 query，并在命中共享素材 Gene 和正向 Capsule 后输出 <code>PASS</code>。</p>
+
+<p><b>【图 6：开源 demo 用来复现经验沉淀与新线程复用】</b></p>
+
+<p>这个 demo 的意义不是证明生产任务已经成功，而是证明一个更前置的能力：Agent 能否从历史线程和干扰信息中，取回这次真正需要的经验。</p>
 
 <hr/>
 
-<h1>怎么判断 EvoMap 真的起作用了</h1>
+<h1>怎么判断 EvoMap 真的起作用</h1>
 
-<p>这类验证不应该看“Agent 有没有真的上传文件”，而应该看几个更基础的指标。</p>
+<p>我会用几个很普通的指标判断它是否有效。</p>
 
 <table>
   <thead>
-    <tr><th background-color="light-gray">判断点</th><th background-color="light-gray">没有沉淀经验时</th><th background-color="light-gray">有 EvoMap 经验召回时</th></tr>
+    <tr><th background-color="light-gray">判断点</th><th background-color="light-gray">没有 EvoMap 时</th><th background-color="light-gray">接入 EvoMap 后</th></tr>
   </thead>
   <tbody>
-    <tr><td>是否重复问基础背景</td><td>经常会问</td><td>明显减少</td></tr>
-    <tr><td>是否识别跨项目复用问题</td><td>需要用户补充</td><td>能先说出复用约束</td></tr>
-    <tr><td>是否复用已验证策略</td><td>容易给泛泛方案</td><td>直接提到共享素材清单、object key、resolver</td></tr>
-    <tr><td>是否仍保留必要确认</td><td>可能乱问或不问</td><td>只确认写库、上传、发版等高风险动作</td></tr>
+    <tr><td>Skill 遇到变化</td><td>继续补规则，或让 Agent 套错旧约束</td><td>从历史使用中提炼更稳定的 Gene</td></tr>
+    <tr><td>新线程起手式</td><td>先反问基础背景</td><td>先说明命中的经验</td></tr>
+    <tr><td>干扰信息</td><td>可能被 UI、视频等相近上下文带偏</td><td>能召回与当前需求真正相关的 Capsule</td></tr>
+    <tr><td>方案输出</td><td>容易泛泛而谈</td><td>直接进入最小实现路径</td></tr>
+    <tr><td>安全边界</td><td>可能乱问或漏问</td><td>只确认写库、上传、发布等高风险动作</td></tr>
   </tbody>
 </table>
 
-<p>我认为只要新线程里的 Agent 能先使用这些经验，再围绕真实风险点提问，就已经说明 Evolver 起到了作用。</p>
-
-<p>因为长期项目里，很多低效不是来自一次任务特别难，而是来自同样的上下文被反复解释，同样的错误方案被反复排除。</p>
+<p>对普通用户来说，这些指标比“协议有没有完整跑通”更直观。因为我们最先需要看到的是 Agent 行为变化：少反问、少纠结、少重复踩同一个坑。</p>
 
 <hr/>
 
-<h1>这件事对普通用户意味着什么</h1>
+<h1>结论</h1>
 
-<p>EvoMap 对普通用户最直接的价值，不是让 Agent 突然变成全自动系统，而是让它少一点失忆。</p>
+<p>Skill 仍然重要。它适合把明确、稳定的操作流程交给 Agent。</p>
 
-<p>它能把多个线程里的背景说明、用户纠正和验证结果沉淀成经验资产。这样下次类似需求出现时，Agent 不再从“你先告诉我系统怎么长”开始，而是从“我记得这类问题之前怎么做有效”开始。</p>
+<p>但长期使用 coding agent 后，真正消耗人的往往不是写第一个 Skill，而是不断处理“类似但有变化”的任务。每次都补 Skill，会让规则越来越重；完全不补，又会让 Agent 继续从零开始。</p>
 
-<p>对我这种同时维护多个项目的人来说，这已经足够重要。因为我真正想要的不是让 Agent 擅自执行高风险动作，而是让它在新线程里少绕弯，少反问，少重复踩坑。</p>
+<p>EvoMap / Evolver 的价值在这里变得清楚：它让 Agent 从使用过程里识别信号，把稳定经验提炼成 Gene，把被验证过的正向经验或错误示例包装成 Capsule。这样下一个新线程里，Agent 不只是读一份固定说明，而是可以先 recall 已经验证过的经验，再进入方案。</p>
 
-<hr/>
-
-<h1>给想继续理解 Evolver 的读者</h1>
-
-<p>如果进一步看机制，可以用下面这张图理解：</p>
-
-<p><b>【图 5：Evolver 如何把信号变成胶囊】</b></p>
-
-<p>一句话概括：Evolver 会识别多线程任务里的信号，提炼可复用做法，经过验证后把正向经验或错误示例包装成新线程可以召回的经验资产。</p>
+<p>对我来说，这就是“少绕弯”的含义：不是让 Agent 擅自做更多事，而是让它更快站到正确经验上。</p>

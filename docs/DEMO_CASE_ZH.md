@@ -110,15 +110,17 @@ Capsule 不是“事实资料”的同义词。Capsule 是某个 Gene 在一次�
 git clone https://github.com/owenshen0907/evomap-agent-memory-demo.git
 cd evomap-agent-memory-demo
 python3 demo.py
+python3 scripts/validate_recall.py
 python3 -m unittest discover
 ```
 
 验收标准很简单：
 
 - `demo.py` 输出包含 `WITHOUT_EVOMAP` 和 `NEW_THREAD_WITH_EVOMAP_RECALL`。
+- `scripts/validate_recall.py` 输出 `AUTOMATED_RECALL_VALIDATION` 和 `PASS`。
 - 普通路径会出现基础设施反问和方案摇摆。
 - Evolver 路径会出现 `asset_manifest`、`object_key`、`AssetUrlResolver`。
-- 单测输出 `3 tests OK`。
+- 单测输出 `5 tests OK`。
 
 ![效果指标](images/mainline-gpt-image-2/zh/08-evolution-metrics-zh-v2.png)
 

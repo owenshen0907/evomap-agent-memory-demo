@@ -40,6 +40,7 @@ The local demo and unit tests validate the intended behavior shift:
 
 - `python3 demo.py` shows the normal path asking for repeated infrastructure context.
 - `python3 demo.py` shows the evolved path going directly to `asset_manifest`, `object_key`, and `AssetUrlResolver`.
+- `python3 scripts/validate_recall.py` simulates source threads, distractor threads, and a new recall query, then passes only when the correct Gene/Capsule pair is recalled.
 - `python3 -m unittest discover` checks both paths and the presence of the Gene/Capsule assets.
 
 ## Safe Memory Rule

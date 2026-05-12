@@ -27,18 +27,22 @@ git clone https://github.com/owenshen0907/evomap-agent-memory-demo.git
 cd evomap-agent-memory-demo
 python3 demo.py
 python3 demo.py --format markdown
+python3 scripts/validate_recall.py
 python3 -m unittest discover
 ```
 
 Expected evidence:
 
 - `demo.py` prints `SIMULATED_SOURCE_THREADS`.
+- `demo.py` prints `DISTRACTOR_THREADS`.
 - `demo.py` prints `EVOLVER_DISTILLATION`.
 - `demo.py` prints `NEW_THREAD_WITH_EVOMAP_RECALL`.
 - `demo.py` prints `WITHOUT_EVOMAP`.
+- `scripts/validate_recall.py` prints `AUTOMATED_RECALL_VALIDATION`.
+- `scripts/validate_recall.py` prints `RESULT` / `PASS`.
 - The evolved path includes `asset_manifest`.
 - The evolved path includes `AssetUrlResolver`.
-- `unittest discover` reports `3 tests OK`.
+- `unittest discover` reports `5 tests OK`.
 
 ## Local Sandbox On The Current Machine
 
@@ -61,6 +65,7 @@ git clone https://github.com/owenshen0907/evomap-agent-memory-demo.git "$SANDBOX
 cd "$SANDBOX_ROOT/work/repo"
 
 python3 demo.py
+python3 scripts/validate_recall.py
 python3 -m unittest discover
 
 evolver --help
@@ -93,7 +98,7 @@ If local sandbox isolation is not trusted, use a fresh computer:
 
 1. Clone the public repo.
 2. Run the offline demo verification commands.
-3. Capture terminal screenshots showing `WITHOUT_EVOMAP`, `NEW_THREAD_WITH_EVOMAP_RECALL`, and `3 tests OK`.
+3. Capture terminal screenshots showing `WITHOUT_EVOMAP`, `NEW_THREAD_WITH_EVOMAP_RECALL`, `AUTOMATED_RECALL_VALIDATION`, `PASS`, and `5 tests OK`.
 4. Optionally run Evolver hook setup with the same safety defaults and screenshot the created files.
 
 Keep credentials out of screenshots and logs.

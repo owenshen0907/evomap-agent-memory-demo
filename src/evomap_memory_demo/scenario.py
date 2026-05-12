@@ -15,6 +15,7 @@ class MemoryAsset:
     kind: str
     asset_id: str
     summary: str
+    triggers: tuple[str, ...]
 
 
 @dataclass(frozen=True)
@@ -31,6 +32,7 @@ class Scenario:
     projects: tuple[str, ...]
     infra_aliases: dict[str, str]
     source_threads: tuple[SourceThread, ...]
+    distractor_threads: tuple[SourceThread, ...]
     memory_assets: tuple[MemoryAsset, ...]
 
 
@@ -57,9 +59,9 @@ SCENARIO = Scenario(
             "thread-a",
             "background",
             (
-                "User explains that the Japanese-learning website, two apps, "
-                "and video pipeline share vocabulary, grammar, audio, and "
-                "illustration assets."
+                "User explains that an existing asset-publishing skill works "
+                "for one concrete website workflow, but becomes brittle when "
+                "the same learning assets must be reused by apps and video."
             ),
         ),
         SourceThread(
@@ -81,6 +83,26 @@ SCENARIO = Scenario(
             ),
         ),
     ),
+    distractor_threads=(
+        SourceThread(
+            "thread-noise-1",
+            "distractor",
+            (
+                "User discusses UI color choices and title typography for a "
+                "Japanese-learning landing page. This should not affect asset "
+                "storage or URL-resolution decisions."
+            ),
+        ),
+        SourceThread(
+            "thread-noise-2",
+            "distractor",
+            (
+                "User discusses background music and opening animation timing "
+                "for short videos. This is useful context for video editing, "
+                "but not the Gene needed for shared asset reuse."
+            ),
+        ),
+    ),
     memory_assets=(
         MemoryAsset(
             "Gene",
@@ -89,6 +111,20 @@ SCENARIO = Scenario(
                 "Store object_key and metadata in DB, never fixed full URLs. "
                 "Generate region-specific URLs through AssetUrlResolver. Treat "
                 "asset_manifest as the shared source for web, apps, and video."
+            ),
+            (
+                "N5",
+                "单词",
+                "音频",
+                "插图",
+                "素材",
+                "网站",
+                "app",
+                "视频",
+                "国内",
+                "海外",
+                "OSS",
+                "复用",
             ),
         ),
         MemoryAsset(
@@ -99,6 +135,27 @@ SCENARIO = Scenario(
                 "Japanese-learning stack with db-primary, oss-cn-assets, "
                 "server-cn-app, server-global-edge, and four shared data "
                 "consumers."
+            ),
+            (
+                "日语",
+                "N5",
+                "单词",
+                "素材",
+                "网站",
+                "app",
+                "视频",
+                "国内",
+                "海外",
+                "复用",
+                "learning",
+                "website",
+                "apps",
+                "video",
+                "oss-cn-assets",
+                "server-global-edge",
+                "asset_manifest",
+                "AssetUrlResolver",
+                "object_key",
             ),
         ),
     ),

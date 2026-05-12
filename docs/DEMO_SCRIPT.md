@@ -4,15 +4,24 @@
 
 This is a text-only reproduction of cross-thread experience reuse:
 
-- earlier threads provide background, corrections, and validation;
+- a skill works for one concrete workflow, then becomes brittle when the task changes;
+- earlier threads provide skill-fit context, corrections, and validation;
+- distractor threads provide nearby but irrelevant context;
 - Evolver-style distillation produces a shared-asset Gene and positive Capsule;
 - a new thread can recall those assets before answering.
 
 ## Source Threads
 
-- `thread-a / background`: the user explains that the Japanese-learning website, two apps, and video pipeline share vocabulary, grammar, audio, and illustration assets.
+- `thread-a / background`: the user explains that an existing asset-publishing skill works for one concrete website workflow, but becomes brittle when the same assets must be reused by apps and video.
 - `thread-b / correction`: the user corrects a full-URL database strategy and prefers stable `object_key` storage.
 - `thread-c / validation`: the `asset_manifest + AssetUrlResolver` strategy is treated as the validated reusable plan.
+
+## Distractor Threads
+
+- `thread-noise-1 / distractor`: the user discusses UI colors and title typography.
+- `thread-noise-2 / distractor`: the user discusses background music and opening animation timing.
+
+These should not steer recall toward UI or editing rules when the new task is about shared asset storage and delivery.
 
 ## New Thread Prompt
 
@@ -63,4 +72,5 @@ Then explain the memory model:
 
 ```bash
 python3 demo.py --format markdown
+python3 scripts/validate_recall.py
 ```

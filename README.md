@@ -2,12 +2,14 @@
 
 A small, offline demo that reproduces a cross-thread EvoMap experience.
 
-The demo models a real user pattern:
+The demo models a real user pattern around skills:
 
-1. Several earlier agent threads contain project background, user corrections, and a validated pattern.
-2. Evolver-style distillation turns those text signals into a small Gene/Capsule pair.
-3. A later new thread asks a related task.
-4. The agent either starts from zero, or recalls the distilled experience first.
+1. A skill works well for one concrete workflow.
+2. A similar task changes enough that the old skill's assumptions become friction.
+3. Several earlier agent threads contain project background, user corrections, distractor context, and a validated pattern.
+4. Evolver-style distillation turns the useful signals into a small Gene/Capsule pair.
+5. A later new thread asks a related task.
+6. The agent either starts from zero, or recalls the distilled experience first.
 
 This repo is designed for articles, presentations, onboarding, and local testing. It does not call EvoMap APIs, spend credits, upload files, run database migrations, or require secrets.
 
@@ -48,6 +50,12 @@ Run tests:
 python3 -m unittest discover
 ```
 
+Run the automated recall validation:
+
+```bash
+python3 scripts/validate_recall.py
+```
+
 ## What It Demonstrates
 
 The memory assets in `memory/` are deliberately small:
@@ -60,11 +68,12 @@ In a real Evolver loop, topology and infrastructure aliases are not the definiti
 The intended behavior shift is user-visible:
 
 1. Source threads provide background, corrections, and validation evidence.
-2. The normal agent asks the user to repeat infrastructure details in a new thread.
-3. The EvoMap-enabled agent first recalls the distilled experience.
-4. The resulting plan is specific: `asset_manifest`, `object_key`, checksum, `AssetUrlResolver`, domestic/global region routing, and video manifest snapshots.
+2. Distractor threads provide nearby but irrelevant context, such as UI styling and video music.
+3. The normal agent asks the user to repeat infrastructure details in a new thread.
+4. The EvoMap-enabled agent first recalls the distilled experience.
+5. The resulting plan is specific: `asset_manifest`, `object_key`, checksum, `AssetUrlResolver`, domestic/global region routing, and video manifest snapshots.
 
-The demo is intentionally text-only. Its purpose is to reproduce experience distillation and reuse, not to execute the real asset-upload task.
+The demo is intentionally text-only. Its purpose is to reproduce experience distillation and reuse, not to execute the real asset-upload task. `scripts/validate_recall.py` is the main verification signal: it feeds source threads, distractor threads, and a new-thread query, then exits with `PASS` only when the correct Gene/Capsule pair is recalled.
 
 ## Repo Layout
 
@@ -77,12 +86,15 @@ The demo is intentionally text-only. Its purpose is to reproduce experience dist
 ├── memory/
 │   ├── capsule_shared_asset_pipeline_positive.md
 │   └── gene_shared_asset_pipeline.md
+├── scripts/
+│   └── validate_recall.py
 ├── src/evomap_memory_demo/
 │   ├── __init__.py
 │   ├── __main__.py
 │   ├── cli.py
 │   ├── scenario.py
-│   └── simulator.py
+│   ├── simulator.py
+│   └── validation.py
 └── tests/
     └── test_simulator.py
 ```
