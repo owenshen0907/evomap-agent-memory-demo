@@ -1,0 +1,147 @@
+<title>Evolver 自进化演示场景：从绕弯到直达方案</title>
+
+<callout emoji="✅" background-color="light-green" border-color="green">
+  <p><b>核心结论：</b>Evolver 的重点不是让 Agent “记住更多内容”，而是让 Agent 把一次任务中的事实、策略和结果沉淀成可召回、可验证、可审计的能力资产。下一次遇到相似任务时，Agent 的行为会发生可观察的变化：少反问、少绕弯、更快给出贴合现有系统的方案。</p>
+</callout>
+
+<p><a type="url-preview" href="https://github.com/owenshen0907/evomap-agent-memory-demo">开源 Demo 仓库：evomap-agent-memory-demo</a></p>
+
+<h1>一、先看事实：同一个需求，两种 Agent 表现</h1>
+
+<p>这篇文档先不从概念讲起，而是先展示一个可复现的场景：同一句需求，普通 Coding Agent 和经过 Evolver 自进化后的 Agent，会给出完全不同的行动路径。</p>
+
+<blockquote>我要给 N5 单词卡生成一批音频和插图，上传到 OSS，并让网站、两个 app、视频剪辑流水线都能复用。国内用户走国内 OSS/CDN，海外用户走海外加速。你帮我设计并落地最小实现。</blockquote>
+
+<grid>
+  <column width-ratio="0.5">
+    <h2>普通 Agent</h2>
+    <ul>
+      <li>先反问服务器分工、OSS 配置、数据库结构、视频流水线和 URL 策略。</li>
+      <li>给出的是通用方案，需要用户补充大量历史上下文。</li>
+      <li>不是能力差，而是没有继承过这套系统的历史经验。</li>
+    </ul>
+  </column>
+  <column width-ratio="0.5">
+    <h2>经过 Evolver 的 Agent</h2>
+    <ul>
+      <li>先 recall 到项目拓扑 Capsule 和共享素材策略 Gene。</li>
+      <li>直接提出 asset_manifest、object_key、AssetUrlResolver 的最小实现。</li>
+      <li>只在写数据库 migration、真实上传 OSS 等高风险动作前确认。</li>
+    </ul>
+  </column>
+</grid>
+
+<hr/>
+
+<h1>二、演示场景：一个独立开发者的真实复杂度</h1>
+
+<p>这个 case 的背景是一个独立开发者同时维护多个日语学习相关产品。真正复杂的地方不是项目数量，而是这些项目共享基础数据、共享素材、共享服务器和发布链路。</p>
+
+<table>
+  <thead>
+    <tr><th background-color="light-gray">维度</th><th background-color="light-gray">内容</th><th background-color="light-gray">为什么会难倒普通 Agent</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>产品线</td><td>日语学习工坊网站、语音练习 App、语法助手 App、视频流水线</td><td>需求往往跨多个代码库和产物形态</td></tr>
+    <tr><td>基础设施</td><td>国内应用服务器、海外加速节点、独立数据库、OSS 素材桶</td><td>Agent 不知道每台服务的角色和边界</td></tr>
+    <tr><td>共享数据</td><td>词条、语法、音频、插图、视频素材</td><td>一次生成的素材要被 web / app / video 多端复用</td></tr>
+    <tr><td>历史约定</td><td>DB 存 object_key，不存固定完整 URL；URL 按 region 解析</td><td>如果没有历史经验，Agent 会在多个通用方案里纠结</td></tr>
+  </tbody>
+</table>
+
+<hr/>
+
+<h1>三、Evolver 从任务中进化出了什么</h1>
+
+<p>Evolver 的自进化不是保存聊天记录，而是把任务中的可复用内容拆成不同类型的能力资产。</p>
+
+<table>
+  <thead>
+    <tr><th background-color="light-gray">资产</th><th background-color="light-gray">在这个 case 中存什么</th><th background-color="light-gray">下次如何发挥作用</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Capsule：事实资产</td><td>四条产品线、db-primary、oss-cn-assets、server-cn-app、server-global-edge 之间的拓扑关系</td><td>避免 Agent 重复询问基础设施和项目边界</td></tr>
+    <tr><td>Gene：策略资产</td><td>共享素材发布策略：asset_manifest、object_key、checksum、AssetUrlResolver</td><td>让 Agent 直接按已验证策略设计最小实现</td></tr>
+    <tr><td>EvolutionEvent：审计记录</td><td>这次任务暴露了什么能力缺口、采用了什么策略、结果是否有效</td><td>让自进化过程可追踪、可审核、可回滚</td></tr>
+  </tbody>
+</table>
+
+<callout emoji="📌" background-color="light-blue" border-color="blue">
+  <p><b>一句话理解：</b>Capsule 解决“这套系统是什么”，Gene 解决“遇到这类问题该怎么做”，EvolutionEvent 解决“这次进化是否有依据”。</p>
+</callout>
+
+<hr/>
+
+<h1>四、测试：用可复现输出证明效果</h1>
+
+<p>开源仓库提供了一个离线 demo，不连接真实服务，不消耗 credits。它的作用不是模拟完整 Evolver 平台，而是稳定复现“进化前后行为差异”。</p>
+
+<pre lang="bash" caption="本地验证命令"><code>git clone https://github.com/owenshen0907/evomap-agent-memory-demo.git
+cd evomap-agent-memory-demo
+python3 demo.py
+python3 -m unittest discover</code></pre>
+
+<table>
+  <thead>
+    <tr><th background-color="light-gray">验证项</th><th background-color="light-gray">证据</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>普通 Agent 路径存在</td><td>输出包含 WITHOUT_EVOMAP，并展示基础设施反问路径</td></tr>
+    <tr><td>进化后路径存在</td><td>输出包含 WITH_EVOMAP，并直接给出 asset_manifest / AssetUrlResolver 方案</td></tr>
+    <tr><td>测试可执行</td><td>unittest discover 通过 2 个基础测试</td></tr>
+    <tr><td>不污染环境</td><td>当前 demo 离线运行，不需要真实 API key、OSS 凭证或数据库连接</td></tr>
+  </tbody>
+</table>
+
+<hr/>
+
+<h1>五、接下来的实战测试计划</h1>
+
+<callout emoji="⚠️" background-color="light-yellow" border-color="yellow">
+  <p><b>原则：</b>实战测试优先在隔离 HOME、临时 clone、关闭自动花费和自动发布的环境中执行，避免污染当前机器上的 Codex / Cursor / Claude Code 配置。</p>
+</callout>
+
+<ol>
+  <li seq="auto">创建临时目录作为 sandbox HOME。</li>
+  <li seq="auto">从 GitHub 重新 clone 仓库，不复用当前工作区。</li>
+  <li seq="auto">设置 Evolver 安全默认值：关闭自动购买、自动发布、validator 和 worker。</li>
+  <li seq="auto">在临时 HOME 下运行 evolver setup-hooks，观察它写入哪些配置。</li>
+  <li seq="auto">运行 GEP MCP 本地模式，确认 recall / evolve / record 的最小链路是否能启动。</li>
+  <li seq="auto">如果本机 sandbox 不可靠，则把验证步骤、预期输出和图集全部提交到 GitHub，在新电脑上重新跑一遍并截图留证。</li>
+</ol>
+
+<pre lang="bash" caption="沙箱环境建议命令"><code>export SANDBOX_ROOT=/tmp/evomap-evolver-sandbox
+export HOME=$SANDBOX_ROOT/home
+export EVOLVER_ATP_AUTOBUY=off
+export ATP_AUTOBUY_DAILY_CAP_CREDITS=0
+export ATP_AUTOBUY_PER_ORDER_CAP_CREDITS=0
+export EVOLVER_AUTO_PUBLISH=false
+export EVOLVER_VALIDATOR_ENABLED=false
+
+mkdir -p "$HOME" "$SANDBOX_ROOT/work"
+git clone https://github.com/owenshen0907/evomap-agent-memory-demo.git "$SANDBOX_ROOT/work/repo"
+cd "$SANDBOX_ROOT/work/repo"
+python3 demo.py
+python3 -m unittest discover</code></pre>
+
+<hr/>
+
+<h1>六、通用接入方式</h1>
+
+<p>正式接入建议分三层：Agent Hooks 负责让 Agent 在合适时机记录和读取进化记忆；GEP MCP 负责 recall / evolve / record；EvoMap Hub 是可选层，用于共享、发布、市场和 credits。</p>
+
+<pre lang="bash" caption="Evolver hooks"><code>evolver setup-hooks --platform=cursor
+evolver setup-hooks --platform=claude-code
+evolver setup-hooks --platform=codex</code></pre>
+
+<pre lang="bash" caption="GEP MCP 本地模式"><code>npx -y @evomap/gep-mcp-server</code></pre>
+
+<callout emoji="❗" background-color="light-yellow" border-color="yellow">
+  <p><b>第一次接入建议：</b>先 local + reviewed，不要默认开启自动购买、自动发布、worker、validator 或任何会花费 credits 的能力。</p>
+</callout>
+
+<hr/>
+
+<h1>七、图集</h1>
+
+<p>下面插入的是本文档主线图。推荐使用 v2 版测试证据图和指标图，因为它们不包含未经实测的假数值。</p>
