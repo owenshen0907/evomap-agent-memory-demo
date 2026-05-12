@@ -1,0 +1,170 @@
+<title>Evolver 演示 Case：同一需求下，Agent 从绕弯到直达方案</title>
+
+<callout emoji="✅" background-color="light-green" border-color="green">
+  <p><b>这份文档的目标不是介绍一个复杂项目，而是完成一个演示任务：</b>证明同一个 coding-agent 需求，普通 Agent 容易反问、纠结或绕弯；接入 EvoMap / Evolver 后，Agent 能先复用进化资产，再直接给出方案。</p>
+</callout>
+
+<p><a type="url-preview" href="https://github.com/owenshen0907/evomap-agent-memory-demo">开源 Demo 仓库：evomap-agent-memory-demo</a></p>
+
+<h1>1. 先给观众看结果</h1>
+
+<p>演示的第一张图就要说明差异：同一句需求，Agent 的起手式不同。</p>
+
+<img href="https://raw.githubusercontent.com/owenshen0907/evomap-agent-memory-demo/main/docs/images/mainline-gpt-image-2/zh/01-before-after-effect-zh.png" caption="图 1：进化前后，Agent 的起手式不同"/>
+
+<grid>
+  <column width-ratio="0.5">
+    <h2>普通 Agent</h2>
+    <p>先问“你这套系统是什么？”面对数据库、OSS、服务器、视频流水线，它需要用户重复确认基础上下文。</p>
+  </column>
+  <column width-ratio="0.5">
+    <h2>Evolver Agent</h2>
+    <p>先 recall “我已经知道这套系统”，再进入方案，直接生成 asset_manifest + Resolver 的行动路径。</p>
+  </column>
+</grid>
+
+<hr/>
+
+<h1>2. 固定使用同一句需求</h1>
+
+<blockquote>我要给 N5 单词卡生成一批音频和插图，上传到 OSS，并让网站、两个 app、视频剪辑流水线都能复用。国内用户走国内 OSS/CDN，海外用户走海外加速。你帮我设计并落地最小实现。</blockquote>
+
+<p>这个需求足够小，可以讲清楚；也足够复杂，能触发普通 Agent 的典型问题。</p>
+
+<img href="https://raw.githubusercontent.com/owenshen0907/evomap-agent-memory-demo/main/docs/images/mainline-gpt-image-2/zh/05-normal-agent-question-path-zh.png" caption="图 2：普通 Agent 会先反问基础上下文"/>
+
+<ul>
+  <li>服务器怎么分工？</li>
+  <li>OSS 怎么配置？</li>
+  <li>数据库结构是什么？</li>
+  <li>视频流水线读哪里？</li>
+  <li>URL 到底存数据库还是运行时生成？</li>
+</ul>
+
+<callout emoji="📌" background-color="light-blue" border-color="blue">
+  <p>这些问题本身没错。问题是：如果这些信息之前已经在任务里反复出现过，Agent 还每次从零问，就说明它没有形成可复用能力。</p>
+</callout>
+
+<hr/>
+
+<h1>3. 把场景压到最小</h1>
+
+<p>这个 case 不需要讲完所有真实业务，只保留最小可复现拓扑。</p>
+
+<img href="https://raw.githubusercontent.com/owenshen0907/evomap-agent-memory-demo/main/docs/images/mainline-gpt-image-2/zh/03-project-topology-zh.png" caption="图 3：最小可复现拓扑"/>
+
+<table>
+  <thead>
+    <tr><th background-color="light-gray">类型</th><th background-color="light-gray">最小元素</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>业务线</td><td>网站、语音练习 App、语法助手 App、视频流水线</td></tr>
+    <tr><td>基础设施</td><td>db-primary、oss-cn-assets、server-cn-app、server-global-edge</td></tr>
+    <tr><td>共享资产</td><td>单词、语法、音频、插图、视频素材</td></tr>
+    <tr><td>历史策略</td><td>数据库存 object_key，URL 由 resolver 按区域生成</td></tr>
+  </tbody>
+</table>
+
+<p>这个最小模型已经足够复现三类现象：Agent 解决不了或只能给泛泛方案；Agent 反问用户；Agent 在存完整 URL、同步 OSS、反向代理、视频流水线数据源之间纠结。</p>
+
+<hr/>
+
+<h1>4. Evolver 后的 Agent 怎么直达方案</h1>
+
+<img href="https://raw.githubusercontent.com/owenshen0907/evomap-agent-memory-demo/main/docs/images/mainline-gpt-image-2/zh/06-evolved-direct-path-zh.png" caption="图 4：进化后的 Agent 路径变短"/>
+
+<ol>
+  <li seq="auto">收到需求后判断这是 substantive 任务。</li>
+  <li seq="auto">先 recall。</li>
+  <li seq="auto">命中 Capsule / Gene。</li>
+  <li seq="auto">直接生成最小方案。</li>
+  <li seq="auto">只确认写数据库 migration、真实上传 OSS 这类高风险动作。</li>
+</ol>
+
+<table>
+  <thead>
+    <tr><th background-color="light-gray">方案组件</th><th background-color="light-gray">作用</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>asset_manifest</td><td>作为 web / app / video 共用事实源</td></tr>
+    <tr><td>object_key + sha256</td><td>保存素材定位和校验信息，不绑定固定 URL</td></tr>
+    <tr><td>AssetUrlResolver(region, object_key)</td><td>按国内 / 海外区域生成访问地址</td></tr>
+    <tr><td>server-global-edge</td><td>承接海外加速访问</td></tr>
+  </tbody>
+</table>
+
+<hr/>
+
+<h1>5. 为什么 Evolver 能让行为变化</h1>
+
+<p>这部分放在效果之后讲，不要一开始就讲概念。</p>
+
+<img href="https://raw.githubusercontent.com/owenshen0907/evomap-agent-memory-demo/main/docs/images/mainline-gpt-image-2/zh/04-evolver-extracts-assets-zh.png" caption="图 5：Evolver 从一次任务中提取可复用资产"/>
+
+<table>
+  <thead>
+    <tr><th background-color="light-gray">资产</th><th background-color="light-gray">这次 case 中的含义</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Capsule：事实</td><td>项目拓扑、服务器别名、OSS 和数据库关系</td></tr>
+    <tr><td>Gene：策略</td><td>共享素材发布策略：asset_manifest + object_key + AssetUrlResolver</td></tr>
+    <tr><td>EvolutionEvent：审计</td><td>能力缺口、采用策略和结果是否有效</td></tr>
+  </tbody>
+</table>
+
+<img href="https://raw.githubusercontent.com/owenshen0907/evomap-agent-memory-demo/main/docs/images/mainline-gpt-image-2/zh/02-self-evolution-loop-zh.png" caption="图 6：Agent 自进化闭环"/>
+
+<callout emoji="💡" background-color="light-blue" border-color="blue">
+  <p><b>重点句：</b>Evolver 不是让 Agent 背更多 prompt，而是让 Agent 把一次任务里的有效经验，变成下一次任务开始前可召回的能力资产。</p>
+</callout>
+
+<hr/>
+
+<h1>6. 怎么验证不是概念</h1>
+
+<p>开源 repo 里有一个离线 demo，用来稳定复现行为差异。</p>
+
+<img href="https://raw.githubusercontent.com/owenshen0907/evomap-agent-memory-demo/main/docs/images/mainline-gpt-image-2/zh/07-test-evidence-zh-v2.png" caption="图 7：离线 demo 和单测证据"/>
+
+<pre lang="bash" caption="验证命令"><code>git clone https://github.com/owenshen0907/evomap-agent-memory-demo.git
+cd evomap-agent-memory-demo
+python3 demo.py
+python3 -m unittest discover</code></pre>
+
+<ul>
+  <li>输出包含 WITHOUT_EVOMAP。</li>
+  <li>输出包含 WITH_EVOMAP。</li>
+  <li>普通路径会出现基础设施反问。</li>
+  <li>进化路径会出现 asset_manifest 和 AssetUrlResolver。</li>
+  <li>单测输出 2 tests OK。</li>
+</ul>
+
+<img href="https://raw.githubusercontent.com/owenshen0907/evomap-agent-memory-demo/main/docs/images/mainline-gpt-image-2/zh/08-evolution-metrics-zh-v2.png" caption="图 8：进化效果如何衡量"/>
+
+<p>这份 demo 只证明一个核心差异：进化前后，Agent 的起点不同。</p>
+
+<hr/>
+
+<h1>7. 最后再讲接入方式</h1>
+
+<p>等观众看到效果和证据后，再讲怎么接。</p>
+
+<img href="https://raw.githubusercontent.com/owenshen0907/evomap-agent-memory-demo/main/docs/images/mainline-gpt-image-2/zh/09-install-architecture-zh.png" caption="图 9：通用接入方式"/>
+
+<ul>
+  <li>Agent Hooks：接入 Cursor / Codex / Claude Code 的任务生命周期。</li>
+  <li>GEP MCP：提供 recall / evolve / record。</li>
+  <li>EvoMap Hub：可选，用于共享、发布、市场和 credits。</li>
+</ul>
+
+<pre lang="bash" caption="第一次演示建议关闭自动花费和自动发布"><code>export EVOLVER_ATP_AUTOBUY=off
+export ATP_AUTOBUY_DAILY_CAP_CREDITS=0
+export ATP_AUTOBUY_PER_ORDER_CAP_CREDITS=0
+export EVOLVER_AUTO_PUBLISH=false
+export EVOLVER_VALIDATOR_ENABLED=false</code></pre>
+
+<img href="https://raw.githubusercontent.com/owenshen0907/evomap-agent-memory-demo/main/docs/images/mainline-gpt-image-2/zh/10-safety-boundary-zh.png" caption="图 10：Evolver 安全边界"/>
+
+<callout emoji="🏁" background-color="light-green" border-color="green">
+  <p><b>演示收束：</b>这个 case 要证明的不是 Agent 永远不需要问问题，而是：当上下文和策略已经被 Evolver 进化成资产后，Agent 不应该再重复绕弯；它应该直接站在上一次经验之上行动。</p>
+</callout>
