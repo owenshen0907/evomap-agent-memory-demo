@@ -2,7 +2,7 @@
 
 ## Goal
 
-Provide a minimal, reproducible demo of coding-agent behavior before and after reusable memory.
+Provide a minimal, reproducible, text-only demo of cross-thread experience reuse.
 
 ## Non-Goals
 
@@ -10,15 +10,17 @@ Provide a minimal, reproducible demo of coding-agent behavior before and after r
 - No credit spending.
 - No real OSS upload.
 - No real database migration.
+- No real video generation or publishing.
 - No private infrastructure details.
 
 ## Core Model
 
-The demo has three parts:
+The demo has four parts:
 
-1. A user prompt with cross-project ambiguity.
-2. A stateless-agent response that asks broad setup questions.
-3. A memory-enabled response that uses a recalled Gene and its positive Capsule evidence.
+1. Simulated source threads that contain background, correction, and validation signals.
+2. Evolver-style distillation into a shared-asset Gene and positive Capsule.
+3. A new-thread prompt with cross-project ambiguity.
+4. A recall-enabled response that uses the distilled assets before answering.
 
 ## Memory Assets
 
@@ -34,7 +36,7 @@ The demo has three parts:
 
 ## Why This Case Is Small Enough
 
-The demo reduces the real developer environment to four projects and four infrastructure aliases. That is enough to reproduce the agent behavior gap without exposing private details.
+The demo reduces the real developer environment to four projects and four infrastructure aliases. That is enough to reproduce cross-thread experience reuse without exposing private details or executing production actions.
 
 ## Extension Path
 
@@ -42,6 +44,8 @@ Later versions can add:
 
 - real EvoMap search-only metadata,
 - live Capsule/Gene import,
+- richer thread transcripts,
+- real Evolver local memory fixtures,
 - a small SQLite migration example,
 - a mocked OSS upload adapter,
 - side-by-side transcript export for slides.

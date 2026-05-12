@@ -130,10 +130,10 @@ python3 demo.py
 python3 -m unittest discover</code></pre>
 
 <ul>
-  <li>demo.py 输出包含 WITHOUT_EVOMAP 和 WITH_EVOMAP。</li>
+  <li>demo.py 输出包含 WITHOUT_EVOMAP 和 NEW_THREAD_WITH_EVOMAP_RECALL。</li>
   <li>普通路径会出现基础设施反问和方案摇摆。</li>
   <li>Evolver 路径会出现 asset_manifest、object_key、AssetUrlResolver。</li>
-  <li>单测输出 2 tests OK。</li>
+  <li>单测输出 3 tests OK。</li>
 </ul>
 
 <p><b>【图 8：进化效果如何衡量】</b></p>

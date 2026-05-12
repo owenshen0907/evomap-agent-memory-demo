@@ -18,11 +18,19 @@ class MemoryAsset:
 
 
 @dataclass(frozen=True)
+class SourceThread:
+    thread_id: str
+    role: str
+    evidence: str
+
+
+@dataclass(frozen=True)
 class Scenario:
     persona: str
     prompt: str
     projects: tuple[str, ...]
     infra_aliases: dict[str, str]
+    source_threads: tuple[SourceThread, ...]
     memory_assets: tuple[MemoryAsset, ...]
 
 
@@ -44,6 +52,35 @@ SCENARIO = Scenario(
         "domestic_app_server": "server-cn-app",
         "global_edge": "server-global-edge",
     },
+    source_threads=(
+        SourceThread(
+            "thread-a",
+            "background",
+            (
+                "User explains that the Japanese-learning website, two apps, "
+                "and video pipeline share vocabulary, grammar, audio, and "
+                "illustration assets."
+            ),
+        ),
+        SourceThread(
+            "thread-b",
+            "correction",
+            (
+                "User corrects an agent that tried to store permanent full "
+                "asset URLs in the database; the safer rule is to store "
+                "object_key and resolve URLs by region."
+            ),
+        ),
+        SourceThread(
+            "thread-c",
+            "validation",
+            (
+                "A text-only validation records that asset_manifest plus "
+                "AssetUrlResolver is the reusable plan for web, apps, and "
+                "video jobs."
+            ),
+        ),
+    ),
     memory_assets=(
         MemoryAsset(
             "Gene",

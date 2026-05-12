@@ -69,6 +69,29 @@ class DemoResult:
         lines.extend(
             [
                 "",
+                "SIMULATED_SOURCE_THREADS",
+                "=" * 78,
+            ]
+        )
+        lines.extend(
+            f"- {thread.thread_id} [{thread.role}]: {thread.evidence}"
+            for thread in self.scenario.source_threads
+        )
+        lines.extend(
+            [
+                "",
+                "EVOLVER_DISTILLATION",
+                "=" * 78,
+                "The simulated source threads produce these reusable assets:",
+            ]
+        )
+        lines.extend(
+            f"- {asset.kind} {asset.asset_id}: {asset.summary}"
+            for asset in self.scenario.memory_assets
+        )
+        lines.extend(
+            [
+                "",
                 "WITHOUT_EVOMAP",
                 "=" * 78,
                 "User prompt:",
@@ -77,7 +100,7 @@ class DemoResult:
                 "Likely agent response:",
                 self.without_evomap,
                 "",
-                "WITH_EVOMAP",
+                "NEW_THREAD_WITH_EVOMAP_RECALL",
                 "=" * 78,
                 "User prompt:",
                 self.scenario.prompt,
@@ -93,11 +116,28 @@ class DemoResult:
         return "\n".join(lines)
 
     def to_markdown(self) -> str:
+        source_threads = "\n".join(
+            f"- **{thread.thread_id} / {thread.role}**: {thread.evidence}"
+            for thread in self.scenario.source_threads
+        )
         recall_hits = "\n".join(
             f"- **{asset.kind} `{asset.asset_id}`**: {asset.summary}"
             for asset in self.scenario.memory_assets
         )
         return f"""# EvoMap Agent Memory Demo
+
+## What This Demo Reproduces
+
+This is a text-only reproduction of cross-thread experience reuse. It does not
+upload files, run database migrations, or call real infrastructure.
+
+## Simulated Source Threads
+
+{source_threads}
+
+## Simulated Evolver Distillation
+
+{recall_hits}
 
 ## Prompt
 
@@ -111,11 +151,7 @@ class DemoResult:
 {self.without_evomap}
 ```
 
-## Recall Hits
-
-{recall_hits}
-
-## With EvoMap
+## New Thread With EvoMap Recall
 
 ```text
 {self.with_evomap}

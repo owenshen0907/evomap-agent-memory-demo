@@ -15,7 +15,7 @@ Environment:
   - `EVOLVER_VALIDATOR_ENABLED=false`
   - `WORKER_ENABLED=0`
 
-## Offline Demo
+## Offline Text Reproduction
 
 Command:
 
@@ -25,18 +25,24 @@ python3 demo.py
 
 Observed:
 
+- Output contains `SIMULATED_SOURCE_THREADS`.
+- Output contains `EVOLVER_DISTILLATION`.
+- Output contains `NEW_THREAD_WITH_EVOMAP_RECALL`.
 - Output contains `WITHOUT_EVOMAP`.
-- Output contains `WITH_EVOMAP`.
 - `WITHOUT_EVOMAP` path asks for server role, OSS config, database/API shape, URL strategy, and video pipeline source.
-- `WITH_EVOMAP` path recalls:
+- `NEW_THREAD_WITH_EVOMAP_RECALL` path recalls:
   - `Gene shared-asset-pipeline-invariant`
   - `Capsule shared-asset-pipeline-positive-jp-learning-stack`
-- `WITH_EVOMAP` path proposes:
+- `NEW_THREAD_WITH_EVOMAP_RECALL` path proposes:
   - `asset_manifest`
   - `object_key`
   - checksum
   - `AssetUrlResolver(region, object_key)`
   - domestic/global URL resolution
+
+Interpretation: this is a text-only reproduction of experience distillation and
+reuse across threads. It does not perform real uploads, database migrations, or
+video rendering.
 
 ## Unit Tests
 
@@ -49,9 +55,9 @@ python3 -m unittest discover
 Observed:
 
 ```text
-..
+...
 ----------------------------------------------------------------------
-Ran 2 tests in 0.000s
+Ran 3 tests in 0.000s
 
 OK
 ```
@@ -116,6 +122,6 @@ The sandbox is good enough for local smoke testing:
 For production-like evidence, repeat the same plan on a fresh computer and capture screenshots of:
 
 1. `python3 demo.py` output showing both paths.
-2. `python3 -m unittest discover` showing `2 tests OK`.
+2. `python3 -m unittest discover` showing `3 tests OK`.
 3. `evolver setup-hooks --platform=codex` output showing hook files created under the test repo.
 4. `npx -y @evomap/gep-mcp-server --help` showing local mode startup.

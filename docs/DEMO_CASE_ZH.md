@@ -115,10 +115,10 @@ python3 -m unittest discover
 
 验收标准很简单：
 
-- `demo.py` 输出包含 `WITHOUT_EVOMAP` 和 `WITH_EVOMAP`。
+- `demo.py` 输出包含 `WITHOUT_EVOMAP` 和 `NEW_THREAD_WITH_EVOMAP_RECALL`。
 - 普通路径会出现基础设施反问和方案摇摆。
 - Evolver 路径会出现 `asset_manifest`、`object_key`、`AssetUrlResolver`。
-- 单测输出 `2 tests OK`。
+- 单测输出 `3 tests OK`。
 
 ![效果指标](images/mainline-gpt-image-2/zh/08-evolution-metrics-zh-v2.png)
 

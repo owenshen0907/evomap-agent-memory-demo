@@ -17,7 +17,10 @@ export WORKER_ENABLED=0
 
 Do not place real API keys, node secrets, OSS credentials, database passwords, private IPs, or signed URLs in this repo or in Evolver memory assets.
 
-## Offline Demo Verification
+## Offline Text Reproduction Verification
+
+The demo is a pure text reproduction of cross-thread experience reuse. It does
+not execute real uploads, database migrations, or video jobs.
 
 ```bash
 git clone https://github.com/owenshen0907/evomap-agent-memory-demo.git
@@ -29,11 +32,13 @@ python3 -m unittest discover
 
 Expected evidence:
 
+- `demo.py` prints `SIMULATED_SOURCE_THREADS`.
+- `demo.py` prints `EVOLVER_DISTILLATION`.
+- `demo.py` prints `NEW_THREAD_WITH_EVOMAP_RECALL`.
 - `demo.py` prints `WITHOUT_EVOMAP`.
-- `demo.py` prints `WITH_EVOMAP`.
 - The evolved path includes `asset_manifest`.
 - The evolved path includes `AssetUrlResolver`.
-- `unittest discover` reports `2 tests OK`.
+- `unittest discover` reports `3 tests OK`.
 
 ## Local Sandbox On The Current Machine
 
@@ -88,7 +93,7 @@ If local sandbox isolation is not trusted, use a fresh computer:
 
 1. Clone the public repo.
 2. Run the offline demo verification commands.
-3. Capture terminal screenshots showing `WITHOUT_EVOMAP`, `WITH_EVOMAP`, and `2 tests OK`.
+3. Capture terminal screenshots showing `WITHOUT_EVOMAP`, `NEW_THREAD_WITH_EVOMAP_RECALL`, and `3 tests OK`.
 4. Optionally run Evolver hook setup with the same safety defaults and screenshot the created files.
 
 Keep credentials out of screenshots and logs.

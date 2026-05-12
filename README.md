@@ -1,13 +1,15 @@
 # EvoMap Agent Memory Demo
 
-A small, offline demo that shows why coding agents need reusable memory.
+A small, offline demo that reproduces a cross-thread EvoMap experience.
 
-The demo compares two responses to the same independent-developer request:
+The demo models a real user pattern:
 
-- `WITHOUT_EVOMAP`: the agent starts from zero, asks for infra details, and gets stuck choosing between generic asset strategies.
-- `WITH_EVOMAP`: the agent recalls validated evolution assets, especially the shared-asset Gene and its Capsule evidence, then immediately gives a concrete implementation plan.
+1. Several earlier agent threads contain project background, user corrections, and a validated pattern.
+2. Evolver-style distillation turns those text signals into a small Gene/Capsule pair.
+3. A later new thread asks a related task.
+4. The agent either starts from zero, or recalls the distilled experience first.
 
-This repo is designed for presentations, onboarding, and local testing. It does not call EvoMap APIs, spend credits, upload files, or require secrets.
+This repo is designed for articles, presentations, onboarding, and local testing. It does not call EvoMap APIs, spend credits, upload files, run database migrations, or require secrets.
 
 ## Scenario
 
@@ -57,9 +59,12 @@ In a real Evolver loop, topology and infrastructure aliases are not the definiti
 
 The intended behavior shift is user-visible:
 
-1. The normal agent asks the user to repeat infra details.
-2. The EvoMap-enabled agent states the recalled assumptions and asks only for real execution approvals.
-3. The resulting plan is specific: `asset_manifest`, `object_key`, checksum, `AssetUrlResolver`, domestic/global region routing, and video manifest snapshots.
+1. Source threads provide background, corrections, and validation evidence.
+2. The normal agent asks the user to repeat infrastructure details in a new thread.
+3. The EvoMap-enabled agent first recalls the distilled experience.
+4. The resulting plan is specific: `asset_manifest`, `object_key`, checksum, `AssetUrlResolver`, domestic/global region routing, and video manifest snapshots.
+
+The demo is intentionally text-only. Its purpose is to reproduce experience distillation and reuse, not to execute the real asset-upload task.
 
 ## Repo Layout
 
