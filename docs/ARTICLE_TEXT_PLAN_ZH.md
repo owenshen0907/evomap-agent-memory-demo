@@ -284,14 +284,14 @@ python3 -m unittest discover
 | 保留图 3 | 进化效果指标 | `08-evolution-metrics-zh-v2.png` | 放“怎么判断效果”节 |
 | 保留图 4 | 安全边界 | `10-safety-boundary-zh.png` | 放“recall 不等于自动执行”节 |
 
-### 需要补画图片
+### 已补画图片
 
-| 图 | 标题 | 作用 | 画面内容 |
+| 图 | 标题 | 文件 | 作用 |
 | --- | --- | --- | --- |
-| 新图 1 | Skill 和 Evolver 的边界 | 解释为什么不是无限补 Skill | 左侧 Skill 固定流程；中间任务变化；右侧 Evolver 从反馈中沉淀 Gene/Capsule |
-| 新图 2 | 三步接入 EvoMap | 说明安装方式很简单 | `npm install -g @evomap/evolver` → `setup-hooks` → `npx skills add ...`，下方标 Cursor / Claude Code / Codex |
-| 新图 3 | 日语工作坊 ↔ 跟读视频反馈循环 | 让读者理解真实场景 | 网站 17000+ 单词/照片 → 场景筛词 → 跟读视频 → 例句图片/音频/场景标签 → 网站展示 |
-| 新图 4 | 验收输出拆解 | 展示 demo 证据 | `SIMULATED_SOURCE_THREADS`、`DISTRACTOR_THREADS`、`RECALL_HITS`、`RESULT PASS`、`5 tests OK` |
+| 新图 1 | Skill 和 Evolver 的边界 | `12-skill-evolver-boundary-zh.png` | 解释为什么不是无限补 Skill |
+| 新图 2 | 三步接入 EvoMap | `13-three-step-install-zh-v2.png` | 说明安装方式很简单 |
+| 新图 3 | 日语工作坊 ↔ 跟读视频反馈循环 | `14-workshop-shadowing-feedback-loop-zh.png` | 让读者理解真实场景 |
+| 新图 4 | 验收输出拆解 | `15-validation-output-breakdown-zh.png` | 展示 demo 证据 |
 
 ### 可以不再使用或后移的图片
 
