@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "evomap-agent-memory-demo"
+version = "0.1.0"
+description = "Offline demo showing how EvoMap-style memory changes coding-agent behavior."
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+authors = [{ name = "owenshen0907", email = "owenshen123@outlook.com" }]
+keywords = ["evomap", "agent-memory", "coding-agent", "demo"]
+classifiers = [
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only"
+]
+
+[project.scripts]
+evomap-memory-demo = "evomap_memory_demo.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
