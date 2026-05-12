@@ -29,8 +29,8 @@ Observed:
 - Output contains `WITH_EVOMAP`.
 - `WITHOUT_EVOMAP` path asks for server role, OSS config, database/API shape, URL strategy, and video pipeline source.
 - `WITH_EVOMAP` path recalls:
-  - `Capsule infra-topology-jp-learning-stack`
   - `Gene shared-asset-pipeline-invariant`
+  - `Capsule shared-asset-pipeline-positive-jp-learning-stack`
 - `WITH_EVOMAP` path proposes:
   - `asset_manifest`
   - `object_key`

@@ -5,7 +5,7 @@
 Same request, two agents:
 
 - one starts from zero,
-- one recalls a project topology Capsule and a shared-asset Gene.
+- one recalls a shared-asset Gene and a positive Capsule for that Gene.
 
 ## Prompt
 
@@ -31,8 +31,8 @@ This is rational for a stateless agent, but it wastes time because the user alre
 
 The agent recalls:
 
-- `infra-topology-jp-learning-stack`
 - `shared-asset-pipeline-invariant`
+- `shared-asset-pipeline-positive-jp-learning-stack`
 
 Then it gives the plan:
 
@@ -50,7 +50,7 @@ Start with the behavior change, not the protocol:
 
 Then explain the memory model:
 
-> A Capsule stores stable facts. A Gene stores reusable strategy. Neither should contain secrets.
+> A Gene stores reusable strategy. A Capsule stores a positive or negative experience from applying a Gene in a concrete environment. Neither should contain secrets.
 
 ## Live Command
 

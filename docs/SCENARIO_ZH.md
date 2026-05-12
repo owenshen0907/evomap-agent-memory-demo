@@ -10,7 +10,7 @@
 
 > 我要给 N5 单词卡生成一批音频和插图，上传到 OSS，并让网站、两个 app、视频剪辑流水线都能复用。国内用户走国内 OSS/CDN，海外用户走海外加速。你帮我设计并落地最小实现。
 
-普通 Agent 会先反问服务器分工、OSS 配置、数据库结构、视频流水线和 URL 策略。经过 Evolver 的 Agent 会先 recall 到项目拓扑 Capsule 和共享素材策略 Gene，然后直接给出 `asset_manifest + object_key + AssetUrlResolver` 的最小实现。
+普通 Agent 会先反问服务器分工、OSS 配置、数据库结构、视频流水线和 URL 策略。经过 Evolver 的 Agent 会先 recall 到共享素材策略 Gene，以及该 Gene 在类似拓扑中的正向 Capsule 证据，然后直接给出 `asset_manifest + object_key + AssetUrlResolver` 的最小实现。
 
 ![进化前后](images/mainline-gpt-image-2/zh/01-before-after-effect-zh.png)
 
@@ -31,13 +31,13 @@
 
 | 资产 | 在这个 case 中存什么 | 下次如何发挥作用 |
 | --- | --- | --- |
-| Capsule：事实资产 | 四条产品线和 `db-primary`、`oss-cn-assets`、`server-cn-app`、`server-global-edge` 的拓扑关系 | 避免 Agent 重复询问基础设施和项目边界 |
-| Gene：策略资产 | 共享素材发布策略：`asset_manifest`、`object_key`、checksum、`AssetUrlResolver` | 让 Agent 直接按已验证策略设计最小实现 |
+| Gene：策略基因 | 共享素材发布策略：`asset_manifest`、`object_key`、checksum、`AssetUrlResolver` | 让 Agent 直接按已验证策略设计最小实现 |
+| Capsule：经验胶囊 | 某个 Gene 在四条产品线和 `db-primary`、`oss-cn-assets`、`server-cn-app`、`server-global-edge` 这类环境中的正向经验或错误示例 | 避免 Agent 重复询问基础设施和项目边界，同时避免重复踩坑 |
 | EvolutionEvent：审计记录 | 能力缺口、采用策略、结果是否有效 | 让自进化过程可追踪、可审核、可回滚 |
 
 ![自进化闭环](images/mainline-gpt-image-2/zh/02-self-evolution-loop-zh.png)
 
-![提取资产](images/mainline-gpt-image-2/zh/04-evolver-extracts-assets-zh.png)
+![信号到胶囊](images/mainline-gpt-image-2/zh/04-evolver-signal-gene-capsule-zh-v2.png)
 
 ## 四、测试证据
 

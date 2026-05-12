@@ -20,7 +20,7 @@ WITHOUT_EVOMAP_RESPONSE = """我需要先确认一些信息：
 请你先提供服务器清单、数据库 schema、OSS 配置和现有项目结构。"""
 
 
-WITH_EVOMAP_RESPONSE = """这是一个 substantive 任务，我先复用了已有的日语学习栈拓扑和共享素材 Gene。
+WITH_EVOMAP_RESPONSE = """这是一个 substantive 任务，我先复用了共享素材 Gene，以及该 Gene 在日语学习栈拓扑中的正向 Capsule 证据。
 
 我按这些已知约定落最小实现：
 1. 新增 `asset_manifest`，作为网站、两个 app、视频流水线的共同事实源。

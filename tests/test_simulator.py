@@ -21,8 +21,8 @@ class SimulatorTest(unittest.TestCase):
         demo = build_demo()
         asset_ids = {asset.asset_id for asset in demo.scenario.memory_assets}
 
-        self.assertIn("infra-topology-jp-learning-stack", asset_ids)
         self.assertIn("shared-asset-pipeline-invariant", asset_ids)
+        self.assertIn("shared-asset-pipeline-positive-jp-learning-stack", asset_ids)
 
 
 if __name__ == "__main__":

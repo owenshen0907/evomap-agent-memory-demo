@@ -5,7 +5,7 @@ A small, offline demo that shows why coding agents need reusable memory.
 The demo compares two responses to the same independent-developer request:
 
 - `WITHOUT_EVOMAP`: the agent starts from zero, asks for infra details, and gets stuck choosing between generic asset strategies.
-- `WITH_EVOMAP`: the agent recalls a topology Capsule and a shared-asset Gene, then immediately gives a concrete implementation plan.
+- `WITH_EVOMAP`: the agent recalls validated evolution assets, especially the shared-asset Gene and its Capsule evidence, then immediately gives a concrete implementation plan.
 
 This repo is designed for presentations, onboarding, and local testing. It does not call EvoMap APIs, spend credits, upload files, or require secrets.
 
@@ -50,8 +50,10 @@ python3 -m unittest discover
 
 The memory assets in `memory/` are deliberately small:
 
-- `Capsule`: reusable facts about the developer's project topology.
 - `Gene`: reusable strategy for shared asset publishing.
+- `Capsule`: validated positive or negative experience from applying a Gene in a concrete environment.
+
+In a real Evolver loop, topology and infrastructure aliases are not the definition of a Capsule. They are evidence context or trigger context for a Capsule. The Capsule itself is the verified result of applying a Gene.
 
 The intended behavior shift is user-visible:
 
@@ -68,7 +70,7 @@ The intended behavior shift is user-visible:
 │   ├── DESIGN.md
 │   └── PLAN.md
 ├── memory/
-│   ├── capsule_infra_topology.md
+│   ├── capsule_shared_asset_pipeline_positive.md
 │   └── gene_shared_asset_pipeline.md
 ├── src/evomap_memory_demo/
 │   ├── __init__.py

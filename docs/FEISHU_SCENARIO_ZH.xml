@@ -24,7 +24,7 @@
   <column width-ratio="0.5">
     <h2>经过 Evolver 的 Agent</h2>
     <ul>
-      <li>先 recall 到项目拓扑 Capsule 和共享素材策略 Gene。</li>
+      <li>先 recall 到共享素材策略 Gene，以及该 Gene 在类似拓扑中的正向 Capsule 证据。</li>
       <li>直接提出 asset_manifest、object_key、AssetUrlResolver 的最小实现。</li>
       <li>只在写数据库 migration、真实上传 OSS 等高风险动作前确认。</li>
     </ul>
@@ -60,14 +60,14 @@
     <tr><th background-color="light-gray">资产</th><th background-color="light-gray">在这个 case 中存什么</th><th background-color="light-gray">下次如何发挥作用</th></tr>
   </thead>
   <tbody>
-    <tr><td>Capsule：事实资产</td><td>四条产品线、db-primary、oss-cn-assets、server-cn-app、server-global-edge 之间的拓扑关系</td><td>避免 Agent 重复询问基础设施和项目边界</td></tr>
-    <tr><td>Gene：策略资产</td><td>共享素材发布策略：asset_manifest、object_key、checksum、AssetUrlResolver</td><td>让 Agent 直接按已验证策略设计最小实现</td></tr>
+    <tr><td>Gene：策略基因</td><td>共享素材发布策略：asset_manifest、object_key、checksum、AssetUrlResolver</td><td>让 Agent 直接按已验证策略设计最小实现</td></tr>
+    <tr><td>Capsule：经验胶囊</td><td>某个 Gene 在四条产品线、db-primary、oss-cn-assets、server-cn-app、server-global-edge 这类环境中的正向经验或错误示例</td><td>避免 Agent 重复询问基础设施和项目边界，同时避免重复踩坑</td></tr>
     <tr><td>EvolutionEvent：审计记录</td><td>这次任务暴露了什么能力缺口、采用了什么策略、结果是否有效</td><td>让自进化过程可追踪、可审核、可回滚</td></tr>
   </tbody>
 </table>
 
 <callout emoji="📌" background-color="light-blue" border-color="blue">
-  <p><b>一句话理解：</b>Capsule 解决“这套系统是什么”，Gene 解决“遇到这类问题该怎么做”，EvolutionEvent 解决“这次进化是否有依据”。</p>
+  <p><b>一句话理解：</b>Gene 解决“遇到这类问题该怎么做”，Capsule 记录“这个 Gene 在某个环境里的正向经验或错误示例”，EvolutionEvent 解决“这次进化是否有依据”。</p>
 </callout>
 
 <hr/>

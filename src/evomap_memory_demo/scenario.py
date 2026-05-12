@@ -46,21 +46,22 @@ SCENARIO = Scenario(
     },
     memory_assets=(
         MemoryAsset(
-            "Capsule",
-            "infra-topology-jp-learning-stack",
-            (
-                "One primary DB, one domestic OSS asset bucket, domestic app "
-                "server, global edge acceleration server, and four projects "
-                "sharing Japanese-learning base data."
-            ),
-        ),
-        MemoryAsset(
             "Gene",
             "shared-asset-pipeline-invariant",
             (
                 "Store object_key and metadata in DB, never fixed full URLs. "
                 "Generate region-specific URLs through AssetUrlResolver. Treat "
                 "asset_manifest as the shared source for web, apps, and video."
+            ),
+        ),
+        MemoryAsset(
+            "Capsule",
+            "shared-asset-pipeline-positive-jp-learning-stack",
+            (
+                "Positive evidence that the shared-asset Gene works for a "
+                "Japanese-learning stack with db-primary, oss-cn-assets, "
+                "server-cn-app, server-global-edge, and four shared data "
+                "consumers."
             ),
         ),
     ),

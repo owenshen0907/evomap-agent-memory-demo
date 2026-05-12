@@ -18,19 +18,19 @@ The demo has three parts:
 
 1. A user prompt with cross-project ambiguity.
 2. A stateless-agent response that asks broad setup questions.
-3. A memory-enabled response that uses two recalled assets.
+3. A memory-enabled response that uses a recalled Gene and its positive Capsule evidence.
 
 ## Memory Assets
-
-`Capsule: infra-topology-jp-learning-stack`
-
-- Stores aliases and project relationships.
-- Useful when the task crosses website, apps, video pipeline, DB, OSS, and global edge.
 
 `Gene: shared-asset-pipeline-invariant`
 
 - Stores the strategy for shared generated assets.
 - Encodes the invariant that DB stores object keys and metadata, while URLs are resolved by region at runtime.
+
+`Capsule: shared-asset-pipeline-positive-jp-learning-stack`
+
+- Records positive evidence that the shared-asset Gene works in the Japanese-learning stack.
+- Uses aliases and project relationships as trigger context, not as the definition of the Capsule.
 
 ## Why This Case Is Small Enough
 
