@@ -20,22 +20,22 @@ class SimulatorTest(unittest.TestCase):
         self.assertIn("DISTRACTOR_THREADS", rendered)
         self.assertIn("EVOLVER_DISTILLATION", rendered)
         self.assertIn("NEW_THREAD_WITH_EVOMAP_RECALL", rendered)
-        self.assertIn("请你先提供服务器清单", demo.without_evomap)
-        self.assertIn("asset_manifest", demo.with_evomap)
-        self.assertIn("AssetUrlResolver", demo.with_evomap)
+        self.assertIn("请你先提供网站数据结构", demo.without_evomap)
+        self.assertIn("scene_word_set", demo.with_evomap)
+        self.assertIn("video_collection_manifest", demo.with_evomap)
 
     def test_memory_assets_are_present(self) -> None:
         demo = build_demo()
         asset_ids = {asset.asset_id for asset in demo.scenario.memory_assets}
 
-        self.assertIn("shared-asset-pipeline-invariant", asset_ids)
-        self.assertIn("shared-asset-pipeline-positive-jp-learning-stack", asset_ids)
+        self.assertIn("workshop-shadowing-feedback-loop", asset_ids)
+        self.assertIn("workshop-shadowing-positive-feedback-case", asset_ids)
 
     def test_source_threads_are_present(self) -> None:
         demo = build_demo()
         roles = {thread.role for thread in demo.scenario.source_threads}
 
-        self.assertEqual({"background", "correction", "validation"}, roles)
+        self.assertEqual({"website-source", "video-consumer", "feedback-rule"}, roles)
 
     def test_distractor_threads_are_present(self) -> None:
         demo = build_demo()
@@ -48,8 +48,8 @@ class SimulatorTest(unittest.TestCase):
         recalled_ids = {asset.asset_id for asset in result.recall_hits}
 
         self.assertTrue(result.passed)
-        self.assertIn("shared-asset-pipeline-invariant", recalled_ids)
-        self.assertIn("shared-asset-pipeline-positive-jp-learning-stack", recalled_ids)
+        self.assertIn("workshop-shadowing-feedback-loop", recalled_ids)
+        self.assertIn("workshop-shadowing-positive-feedback-case", recalled_ids)
         self.assertIn("DISTRACTOR_THREADS", result.to_text())
 
 

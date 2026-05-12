@@ -5,28 +5,28 @@
 This is a text-only reproduction of cross-thread experience reuse:
 
 - a skill works for one concrete workflow, then becomes brittle when the task changes;
-- earlier threads provide skill-fit context, corrections, and validation;
+- the Japanese Workshop website thread and shadowing-video thread each contain useful knowledge;
 - distractor threads provide nearby but irrelevant context;
-- Evolver-style distillation produces a shared-asset Gene and positive Capsule;
+- Evolver-style distillation produces a website-video feedback-loop Gene and positive Capsule;
 - a new thread can recall those assets before answering.
 
 ## Source Threads
 
-- `thread-a / background`: the user explains that an existing asset-publishing skill works for one concrete website workflow, but becomes brittle when the same assets must be reused by apps and video.
-- `thread-b / correction`: the user corrects a full-URL database strategy and prefers stable `object_key` storage.
-- `thread-c / validation`: the `asset_manifest + AssetUrlResolver` strategy is treated as the validated reusable plan.
+- `thread-workshop / website-source`: Japanese Workshop already has 17,000+ words and generated photos.
+- `thread-video / video-consumer`: shadowing videos select words by scene and generate video collections, example sentences, sentence images, and audio.
+- `thread-feedback / feedback-rule`: video-generated scenes, example images, and audio should feed back into the website through stable `word_id` and `object_key` manifests.
 
 ## Distractor Threads
 
 - `thread-noise-1 / distractor`: the user discusses UI colors and title typography.
 - `thread-noise-2 / distractor`: the user discusses background music and opening animation timing.
 
-These should not steer recall toward UI or editing rules when the new task is about shared asset storage and delivery.
+These should not steer recall toward UI or editing rules when the new task is about the Workshop-video feedback loop.
 
 ## New Thread Prompt
 
 ```text
-我要给 N5 单词卡生成一批音频和插图，上传到 OSS，并让网站、两个 app、视频剪辑流水线都能复用。国内用户走国内 OSS/CDN，海外用户走海外加速。你帮我设计并落地最小实现。
+日语工作坊网站已经有 17000 多个日语单词和对应照片。我想按场景筛选一批词，生成跟读视频合集；视频生成过程中会产生单词场景、例句图片和音频，这些又要反哺回网站展示。你帮我设计一个最小复现流程。
 ```
 
 ## Expected Contrast
@@ -35,11 +35,11 @@ These should not steer recall toward UI or editing rules when the new task is ab
 
 The agent asks:
 
-- Which servers exist?
-- What is the OSS bucket?
-- Does the video pipeline read DB or files?
-- Should URLs be stored or generated?
-- Is overseas delivery proxy, CDN, or sync?
+- What is the website vocabulary schema?
+- Where are the existing photos and audio files?
+- Does the video workflow read DB, CSV, JSON, or website APIs?
+- Where should generated example images and audio be written back?
+- Should video outputs duplicate word records or attach to existing `word_id`s?
 
 This is rational for a stateless agent, but it wastes time because the user has already explained and corrected this pattern in earlier threads.
 
@@ -47,16 +47,16 @@ This is rational for a stateless agent, but it wastes time because the user has 
 
 The agent recalls:
 
-- `shared-asset-pipeline-invariant`
-- `shared-asset-pipeline-positive-jp-learning-stack`
+- `workshop-shadowing-feedback-loop`
+- `workshop-shadowing-positive-feedback-case`
 
 Then it gives the plan:
 
-- store canonical asset metadata in `asset_manifest`;
-- store `object_key`, not permanent full URLs;
-- generate URLs through `AssetUrlResolver`;
-- route domestic and global delivery separately;
-- let web, apps, and video jobs consume the same manifest source.
+- treat Japanese Workshop `word_id` records as the source of truth;
+- create `scene_word_set` for one scene;
+- generate `video_collection_manifest` from that set;
+- write scene labels, example images, and narration audio into `word_learning_assets`;
+- let the website display the video-generated assets without duplicating word records.
 
 ## Talk Track
 

@@ -32,14 +32,14 @@ Observed:
 - Output contains `WITHOUT_EVOMAP`.
 - `WITHOUT_EVOMAP` path asks for server role, OSS config, database/API shape, URL strategy, and video pipeline source.
 - `NEW_THREAD_WITH_EVOMAP_RECALL` path recalls:
-  - `Gene shared-asset-pipeline-invariant`
-  - `Capsule shared-asset-pipeline-positive-jp-learning-stack`
+  - `Gene workshop-shadowing-feedback-loop`
+  - `Capsule workshop-shadowing-positive-feedback-case`
 - `NEW_THREAD_WITH_EVOMAP_RECALL` path proposes:
-  - `asset_manifest`
+  - `scene_word_set`
+  - `video_collection_manifest`
+  - `word_learning_assets`
+  - `word_id`
   - `object_key`
-  - checksum
-  - `AssetUrlResolver(region, object_key)`
-  - domestic/global URL resolution
 
 Interpretation: this is a text-only reproduction of experience distillation and
 reuse across threads. It does not perform real uploads, database migrations, or
@@ -60,8 +60,8 @@ Observed:
 - Output contains `DISTRACTOR_THREADS`.
 - Output contains `RECALL_QUERY`.
 - Output contains both:
-  - `Gene shared-asset-pipeline-invariant`
-  - `Capsule shared-asset-pipeline-positive-jp-learning-stack`
+  - `Gene workshop-shadowing-feedback-loop`
+  - `Capsule workshop-shadowing-positive-feedback-case`
 - Output ends with `RESULT` / `PASS`.
 
 Interpretation: the validation script treats the demo as an integration signal

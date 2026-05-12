@@ -1,67 +1,50 @@
-# Evolver 自进化演示场景：从绕弯到直达方案
+# Evolver 自进化演示场景：日语工作坊和跟读视频互相反哺
 
-> 核心结论：Evolver 的重点不是让 Agent “记住更多内容”，而是让 Agent 把一次任务中的事实、策略和结果沉淀成可召回、可验证、可审计的能力资产。下一次遇到相似任务时，Agent 的行为会发生可观察的变化：少反问、少绕弯、更快给出贴合现有系统的方案。
+> 核心结论：这个 case 不再用多个 App 和多套服务器来制造复杂度，而是收敛成两个具体事项：日语工作坊网站和日语跟读视频。它们分别在不同线程里沉淀知识，然后在新线程里通过 recall 互相借用。
 
-飞书文档：<https://ccnjn62goe9e.feishu.cn/docx/ItTsdalH6oUZTPxlJoqcyurNnHe>
-
-## 一、先看事实
+## 一、最小事实
 
 同一句需求：
 
-> 我要给 N5 单词卡生成一批音频和插图，上传到 OSS，并让网站、两个 app、视频剪辑流水线都能复用。国内用户走国内 OSS/CDN，海外用户走海外加速。你帮我设计并落地最小实现。
+> 日语工作坊网站已经有 17000 多个日语单词和对应照片。我想按场景筛选一批词，生成跟读视频合集；视频生成过程中会产生单词场景、例句图片和音频，这些又要反哺回网站展示。你帮我设计一个最小复现流程。
 
-普通 Agent 会先反问服务器分工、OSS 配置、数据库结构、视频流水线和 URL 策略。经过 Evolver 的 Agent 会先 recall 到共享素材策略 Gene，以及该 Gene 在类似拓扑中的正向 Capsule 证据，然后直接给出 `asset_manifest + object_key + AssetUrlResolver` 的最小实现。
+普通 Agent 会先反问网站表结构、照片/音频位置、场景分类方式、视频脚本入口和回写方式。经过 Evolver 的 Agent 会先 recall 到 `workshop-shadowing-feedback-loop` Gene 和正向 Capsule，然后直接给出 `scene_word_set + video_collection_manifest + word_learning_assets` 的最小复现路径。
 
-![进化前后](images/mainline-gpt-image-2/zh/01-before-after-effect-zh.png)
+## 二、两个工作面
 
-## 二、真实场景
-
-这个 case 的背景是一个独立开发者同时维护多个日语学习相关产品。真正复杂的地方不是项目数量，而是这些项目共享基础数据、共享素材、共享服务器和发布链路。
-
-| 维度 | 内容 | 难点 |
+| 工作面 | 已有内容 | 会产生什么 |
 | --- | --- | --- |
-| 产品线 | 日语学习工坊网站、语音练习 App、语法助手 App、视频流水线 | 需求跨多个代码库和产物形态 |
-| 基础设施 | 国内应用服务器、海外加速节点、独立数据库、OSS 素材桶 | Agent 不知道每台服务的角色和边界 |
-| 共享数据 | 词条、语法、音频、插图、视频素材 | 一次生成的素材要被多端复用 |
-| 历史约定 | DB 存 object_key，不存固定完整 URL | 没有历史经验时会在多个通用方案里纠结 |
+| 日语工作坊网站 | 17000+ 单词、17000+ 照片、单词详情页、读音/解释 | 为视频提供词库、图片、音频和稳定 `word_id` |
+| 日语跟读视频 | 按场景筛词、生成跟读合集 | 产生场景标签、例句、例句图片、旁白音频、视频合集 |
 
-![项目拓扑](images/mainline-gpt-image-2/zh/03-project-topology-zh.png)
+关键关系：
+
+1. 网站是单词事实源。
+2. 视频从网站词库按场景筛词。
+3. 视频生成出的场景、例句图片和音频反哺网站。
+4. 网站展示变丰富后，继续帮助下一轮视频选题。
 
 ## 三、Evolver 进化出了什么
 
 | 资产 | 在这个 case 中存什么 | 下次如何发挥作用 |
 | --- | --- | --- |
-| Gene：策略基因 | 共享素材发布策略：`asset_manifest`、`object_key`、checksum、`AssetUrlResolver` | 让 Agent 直接按已验证策略设计最小实现 |
-| Capsule：经验胶囊 | 某个 Gene 在四条产品线和 `db-primary`、`oss-cn-assets`、`server-cn-app`、`server-global-edge` 这类环境中的正向经验或错误示例 | 避免 Agent 重复询问基础设施和项目边界，同时避免重复踩坑 |
-| EvolutionEvent：审计记录 | 能力缺口、采用策略、结果是否有效 | 让自进化过程可追踪、可审核、可回滚 |
-
-![自进化闭环](images/mainline-gpt-image-2/zh/02-self-evolution-loop-zh.png)
-
-![信号到胶囊](images/mainline-gpt-image-2/zh/04-evolver-signal-gene-capsule-zh-v2.png)
+| Gene | `workshop-shadowing-feedback-loop`：网站 `word_id` 是事实源，视频读取 `scene_word_set`，视频产物写回 `word_learning_assets` | 让 Agent 直接按反馈循环设计最小复现 |
+| Capsule | `workshop-shadowing-positive-feedback-case`：网站词库和跟读视频互相反哺的正向经验 | 避免 Agent 重复询问两个工作面的关系 |
+| EvolutionEvent | 哪些线程提供了网站事实、视频需求、反馈规则和验证结果 | 让自进化过程可追踪、可审核 |
 
 ## 四、测试证据
 
-当前 repo 提供离线 demo，不连接真实服务，不消耗 credits。它的作用是稳定复现“进化前后行为差异”。
+当前 repo 提供离线 demo，不连接真实服务，不消耗 credits。
 
 ```bash
 python3 demo.py
+python3 scripts/validate_recall.py
 python3 -m unittest discover
 ```
 
-![测试证据](images/mainline-gpt-image-2/zh/07-test-evidence-zh-v2.png)
+验收信号：
 
-![效果指标](images/mainline-gpt-image-2/zh/08-evolution-metrics-zh-v2.png)
-
-## 五、通用接入
-
-正式接入建议分三层：
-
-- Agent Hooks：让 Agent 在合适时机记录和读取进化记忆。
-- GEP MCP：提供 recall / evolve / record。
-- EvoMap Hub：可选，用于共享、发布、市场和 credits。
-
-![通用接入方式](images/mainline-gpt-image-2/zh/09-install-architecture-zh.png)
-
-第一次接入建议 local + reviewed，不要默认开启自动购买、自动发布、worker、validator 或任何会花费 credits 的能力。
-
-![安全边界](images/mainline-gpt-image-2/zh/10-safety-boundary-zh.png)
+- `demo.py` 输出 `SIMULATED_SOURCE_THREADS` 和 `NEW_THREAD_WITH_EVOMAP_RECALL`。
+- `scripts/validate_recall.py` 输出 `RESULT / PASS`。
+- 新线程回答包含 `scene_word_set`、`video_collection_manifest`、`word_learning_assets`。
+- 单测输出 `5 tests OK`。

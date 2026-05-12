@@ -40,8 +40,9 @@ Expected evidence:
 - `demo.py` prints `WITHOUT_EVOMAP`.
 - `scripts/validate_recall.py` prints `AUTOMATED_RECALL_VALIDATION`.
 - `scripts/validate_recall.py` prints `RESULT` / `PASS`.
-- The evolved path includes `asset_manifest`.
-- The evolved path includes `AssetUrlResolver`.
+- The evolved path includes `scene_word_set`.
+- The evolved path includes `video_collection_manifest`.
+- The evolved path includes `word_learning_assets`.
 - `unittest discover` reports `5 tests OK`.
 
 ## Local Sandbox On The Current Machine

@@ -7,10 +7,10 @@ from .simulator import WITH_EVOMAP_RESPONSE
 
 
 RECALL_QUERY = (
-    "新线程里先有一些干扰信息：我刚才聊了页面配色、视频片头音乐和标题模板。"
-    "现在真正要做的是：给 N5 单词卡生成音频和插图，上传到 OSS，"
-    "让网站、两个 app、视频剪辑流水线复用；国内和海外访问路径不同。"
-    "请先 recall 可用经验，再给最小实现方案。"
+    "新线程里先有一些干扰信息：我刚才聊了首页配色、视频片头音乐和字幕模板。"
+    "现在真正要做的是：日语工作坊网站已经有 17000 多个单词和照片，"
+    "我要按场景筛词生成跟读视频合集；视频过程中生成的场景、例句图片、"
+    "音频又要反哺回网站展示。请先 recall 可用经验，再给最小复现方案。"
 )
 
 
@@ -72,7 +72,8 @@ def recall_assets(query: str, scenario: Scenario = SCENARIO) -> tuple[MemoryAsse
         if score:
             scored.append((score, asset))
 
-    scored.sort(key=lambda item: (-item[0], item[1].asset_id))
+    kind_order = {"Gene": 0, "Capsule": 1}
+    scored.sort(key=lambda item: (kind_order.get(item[1].kind, 9), -item[0], item[1].asset_id))
     return tuple(asset for _, asset in scored)
 
 
@@ -82,18 +83,18 @@ def validate_recall(query: str = RECALL_QUERY, scenario: Scenario = SCENARIO) ->
     expected_ids = {asset.asset_id for asset in scenario.memory_assets}
 
     assertions = (
-        "query contains distractor context about UI, music, and title templates",
-        "recall returns the shared-asset Gene",
-        "recall returns the positive Japanese-learning Capsule",
-        "agent response uses asset_manifest, object_key, and AssetUrlResolver",
+        "query contains distractor context about UI, music, and subtitle templates",
+        "recall returns the workshop-shadowing feedback-loop Gene",
+        "recall returns the positive workshop-shadowing Capsule",
+        "agent response uses word_id, scene_word_set, and video_collection_manifest",
         "agent response asks only for real execution approvals",
     )
-    response_terms = ("asset_manifest", "object_key", "AssetUrlResolver")
+    response_terms = ("word_id", "scene_word_set", "video_collection_manifest")
     passed = (
         expected_ids.issubset(recalled_ids)
         and all(term in WITH_EVOMAP_RESPONSE for term in response_terms)
-        and "是否允许我写数据库 migration" in WITH_EVOMAP_RESPONSE
-        and "是否允许我用当前环境里的 OSS 凭证执行真实上传" in WITH_EVOMAP_RESPONSE
+        and "是否允许我新增或修改网站的学习素材 manifest / migration" in WITH_EVOMAP_RESPONSE
+        and "是否允许我执行真实的视频渲染和素材上传" in WITH_EVOMAP_RESPONSE
     )
 
     return RecallValidationResult(

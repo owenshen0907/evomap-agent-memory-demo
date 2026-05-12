@@ -6,39 +6,39 @@ from .scenario import SCENARIO, Scenario
 
 
 WITHOUT_EVOMAP_RESPONSE = """我需要先确认一些信息：
-1. 你的国内和海外服务器分别是什么角色？海外是 CDN、反向代理还是同步存储？
-2. OSS 桶名、endpoint、CDN 域名是什么？是否已有签名 URL 规则？
-3. 网站、两个 app、视频流水线分别读哪个数据库和接口？
-4. 素材 URL 应该直接存数据库，还是每次运行时拼接？
-5. 视频流水线是读数据库、CSV、JSON manifest，还是直接扫 OSS？
+1. 日语工作坊的 17000 多个单词表结构是什么？照片和音频分别存在哪里？
+2. 场景分类是已有字段，还是需要重新让模型给单词打标签？
+3. 跟读视频合集的生成脚本读取数据库、CSV、JSON，还是直接从网站接口拉取？
+4. 视频生成出的例句图片和音频要回写到网站哪张表？
+5. 网站展示时，应该直接引用视频产物路径，还是复制一份素材？
 
 在确认这些之前，我只能给一个通用方案。可能的方向有三种：
-- 每个项目各自上传和维护 URL，但会有重复数据。
-- 把 OSS URL 直接存到词条表，但未来 CDN/海外域名变更会比较麻烦。
-- 建一个 asset 表，但需要先确认所有项目的读取方式。
+- 网站和视频各自维护一套单词/素材数据，但以后会不同步。
+- 视频脚本直接扫网站素材目录，但很难把例句图片和音频回写到网站。
+- 建一套 manifest，但需要先确认网站和视频之间的主从关系。
 
-请你先提供服务器清单、数据库 schema、OSS 配置和现有项目结构。"""
+请你先提供网站数据结构、视频脚本入口、现有素材路径和回写方式。"""
 
 
-WITH_EVOMAP_RESPONSE = """这是一个跨项目素材复用任务，我先复用了共享素材 Gene，以及该 Gene 在日语学习栈拓扑中的正向 Capsule 证据。
+WITH_EVOMAP_RESPONSE = """这是一个日语工作坊网站和跟读视频互相反哺的任务，我先复用了 workshop-shadowing-feedback-loop Gene，以及它的正向 Capsule 证据。
 
 我按这些已知约定落最小实现：
-1. 新增 `asset_manifest`，作为网站、两个 app、视频流水线的共同事实源。
-2. 上传音频/插图到 `oss-cn-assets`，数据库只保存 `object_key`、`sha256`、`asset_type`、`word_id`、`locale`、`status`。
-3. 不把完整 URL 写入数据库；新增 `AssetUrlResolver(region, object_key)`。
-4. `region=cn` 时返回国内 OSS/CDN URL；`region=global` 时返回 `server-global-edge` 加速 URL。
-5. 网站和 app 通过 API 读 manifest；视频流水线读取 manifest snapshot，避免每个项目各写一套路径规则。
+1. 以日语工作坊的 `word_id` 为主键，不复制一套视频专用单词表。
+2. 从 17000 多个单词里筛选一个最小场景包，例如 `scene=restaurant`，生成 `scene_word_set`。
+3. 跟读视频只读取 `scene_word_set` 和已有单词照片/音频，生成 `video_collection_manifest`。
+4. 视频阶段生成的例句、例句图片、旁白音频，写入 `word_learning_assets`，仍然挂回原始 `word_id`。
+5. 网站展示读取 `word_learning_assets`，把“场景、跟读视频、例句图片、音频”补回单词详情页。
 
 最小垂直切片：
-- 先选 3 个 N5 单词生成 audio + image。
-- 上传到 OSS 并校验 sha256。
-- 写入 `asset_manifest`。
-- 在 API 返回 `asset_urls.cn` 和 `asset_urls.global`。
-- 视频导出一份 `asset_manifest_n5_sample.json` 做验证。
+- 从网站词库里选 8 个餐厅场景单词。
+- 生成一份 `scene_word_set_restaurant.json`。
+- 为其中 3 个词生成例句、例句图片和跟读音频。
+- 生成一个 30 秒跟读视频合集 manifest。
+- 把新产生的场景标签、例句图片 object_key、音频 object_key 回写到网站展示 manifest。
 
 我只需要你确认两件真实运行前必须确认的事：
-- 是否允许我写数据库 migration？
-- 是否允许我用当前环境里的 OSS 凭证执行真实上传？"""
+- 是否允许我新增或修改网站的学习素材 manifest / migration？
+- 是否允许我执行真实的视频渲染和素材上传？"""
 
 
 @dataclass(frozen=True)

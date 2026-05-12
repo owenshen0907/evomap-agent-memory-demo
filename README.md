@@ -6,28 +6,31 @@ The demo models a real user pattern around skills:
 
 1. A skill works well for one concrete workflow.
 2. A similar task changes enough that the old skill's assumptions become friction.
-3. Several earlier agent threads contain project background, user corrections, distractor context, and a validated pattern.
+3. The Japanese Workshop website thread and the shadowing-video thread each contain useful knowledge.
 4. Evolver-style distillation turns the useful signals into a small Gene/Capsule pair.
-5. A later new thread asks a related task.
-6. The agent either starts from zero, or recalls the distilled experience first.
+5. A later new thread asks the agent to connect the two workflows.
+6. The agent either starts from zero, or recalls the distilled feedback-loop experience first.
 
 This repo is designed for articles, presentations, onboarding, and local testing. It does not call EvoMap APIs, spend credits, upload files, run database migrations, or require secrets.
 
 ## Scenario
 
-The user is an independent developer with:
+The user is an independent developer with two connected work surfaces:
 
-- a Japanese learning workshop website,
-- two mobile app lines,
-- a short-video production pipeline,
-- domestic and overseas servers,
-- a separate database server,
-- OSS buckets and asset delivery paths shared across projects.
+- `japanese-workshop-site`: a website with 17,000+ Japanese vocabulary records and 17,000 generated photos.
+- `japanese-shadowing-video`: a video workflow that selects words by scene and generates shadowing-video collections.
+
+The key loop:
+
+1. The website provides canonical vocabulary, photos, and audio.
+2. The video workflow consumes scene-filtered words.
+3. The video workflow generates scene labels, example sentence images, and audio.
+4. Those generated assets feed back into the website display.
 
 The demo request:
 
 ```text
-我要给 N5 单词卡生成一批音频和插图，上传到 OSS，并让网站、两个 app、视频剪辑流水线都能复用。国内用户走国内 OSS/CDN，海外用户走海外加速。你帮我设计并落地最小实现。
+日语工作坊网站已经有 17000 多个日语单词和对应照片。我想按场景筛选一批词，生成跟读视频合集；视频生成过程中会产生单词场景、例句图片和音频，这些又要反哺回网站展示。你帮我设计一个最小复现流程。
 ```
 
 ## Quick Start
@@ -60,7 +63,7 @@ python3 scripts/validate_recall.py
 
 The memory assets in `memory/` are deliberately small:
 
-- `Gene`: reusable strategy for shared asset publishing.
+- `Gene`: reusable strategy for the Workshop-to-shadowing-video feedback loop.
 - `Capsule`: validated positive or negative experience from applying a Gene in a concrete environment.
 
 In a real Evolver loop, topology and infrastructure aliases are not the definition of a Capsule. They are evidence context or trigger context for a Capsule. The Capsule itself is the verified result of applying a Gene.
@@ -69,9 +72,9 @@ The intended behavior shift is user-visible:
 
 1. Source threads provide background, corrections, and validation evidence.
 2. Distractor threads provide nearby but irrelevant context, such as UI styling and video music.
-3. The normal agent asks the user to repeat infrastructure details in a new thread.
+3. The normal agent asks the user to repeat website/video relationship details in a new thread.
 4. The EvoMap-enabled agent first recalls the distilled experience.
-5. The resulting plan is specific: `asset_manifest`, `object_key`, checksum, `AssetUrlResolver`, domestic/global region routing, and video manifest snapshots.
+5. The resulting plan is specific: `scene_word_set`, `video_collection_manifest`, `word_learning_assets`, `word_id`, and `object_key`.
 
 The demo is intentionally text-only. Its purpose is to reproduce experience distillation and reuse, not to execute the real asset-upload task. `scripts/validate_recall.py` is the main verification signal: it feeds source threads, distractor threads, and a new-thread query, then exits with `PASS` only when the correct Gene/Capsule pair is recalled.
 
@@ -84,8 +87,8 @@ The demo is intentionally text-only. Its purpose is to reproduce experience dist
 │   ├── DESIGN.md
 │   └── PLAN.md
 ├── memory/
-│   ├── capsule_shared_asset_pipeline_positive.md
-│   └── gene_shared_asset_pipeline.md
+│   ├── capsule_workshop_shadowing_positive.md
+│   └── gene_workshop_shadowing_feedback_loop.md
 ├── scripts/
 │   └── validate_recall.py
 ├── src/evomap_memory_demo/
